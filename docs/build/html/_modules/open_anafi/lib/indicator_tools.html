@@ -1,0 +1,231 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>open_anafi.lib.indicator_tools &#8212; OpenAnafi 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">OpenAnafi 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for open_anafi.lib.indicator_tools</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">open_anafi.models</span> <span class="k">import</span> <span class="n">Indicator</span><span class="p">,</span> <span class="n">IndicatorParameter</span><span class="p">,</span> <span class="n">Frame</span>
+<span class="kn">from</span> <span class="nn">open_anafi.serializers</span> <span class="k">import</span> <span class="n">IndicatorSerializer</span>
+<span class="kn">from</span> <span class="nn">.frame_tools</span> <span class="k">import</span> <span class="n">FrameTools</span>
+<span class="kn">from</span> <span class="nn">open_anafi.lib</span> <span class="k">import</span> <span class="n">parsing_tools</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<div class="viewcode-block" id="IndicatorTools"><a class="viewcode-back" href="../../../index.html#open_anafi.lib.IndicatorTools">[docs]</a><span class="k">class</span> <span class="nc">IndicatorTools</span><span class="p">():</span>
+<div class="viewcode-block" id="IndicatorTools.calculateMaxDepth"><a class="viewcode-back" href="../../../index.html#open_anafi.lib.IndicatorTools.calculateMaxDepth">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">calculateMaxDepth</span><span class="p">(</span><span class="n">indicator</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculates the depth of an indicator (the max depth of all its parameters)</span>
+<span class="sd">        </span>
+<span class="sd">        :param indicator: The indicator to evaluate</span>
+<span class="sd">        :type indicator: class:`open_anafi.models.Indicator`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">depth</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">indicator</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">parameter</span><span class="o">.</span><span class="n">depth</span> <span class="o">&gt;</span> <span class="n">depth</span><span class="p">:</span>
+                <span class="n">depth</span> <span class="o">=</span> <span class="n">parameter</span><span class="o">.</span><span class="n">depth</span>
+
+        <span class="n">indicator</span><span class="o">.</span><span class="n">max_depth</span> <span class="o">=</span> <span class="n">depth</span>
+        <span class="n">indicator</span><span class="o">.</span><span class="n">save</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="IndicatorTools.updateDepth"><a class="viewcode-back" href="../../../index.html#open_anafi.lib.IndicatorTools.updateDepth">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">updateDepth</span><span class="p">(</span><span class="n">indicator</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Updates the depth of an indicator after an update.</span>
+<span class="sd">           Recursively updates all the affected indicators/frames</span>
+
+<span class="sd">        :param indicator: The indicator to evaluate</span>
+<span class="sd">        :type indicator: class:`open_anafi.models.Indicator`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="n">IndicatorParameter</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">original_equation__contains</span><span class="o">=</span><span class="n">indicator</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">indicators_to_update</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">param</span><span class="o">.</span><span class="n">indicator</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">]))</span>
+        <span class="n">frames_to_update</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">indicator</span><span class="o">.</span><span class="n">frames</span><span class="o">.</span><span class="n">all</span><span class="p">())</span> 
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indicators_to_update</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">indic</span> <span class="ow">in</span> <span class="n">indicators_to_update</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">indic</span><span class="o">.</span><span class="n">frames</span><span class="o">.</span><span class="n">all</span><span class="p">():</span> <span class="n">frames_to_update</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+
+                <span class="c1"># For each indicator, we update the depth of all the parameters, then we calculate the max depth of the indicator</span>
+                <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">indic</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">all</span><span class="p">():</span> <span class="n">IndicatorParameterTools</span><span class="o">.</span><span class="n">calculateDepth</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+                <span class="n">IndicatorTools</span><span class="o">.</span><span class="n">calculateMaxDepth</span><span class="p">(</span><span class="n">indic</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">indic</span> <span class="ow">in</span> <span class="n">indicators_to_update</span><span class="p">:</span> <span class="n">IndicatorTools</span><span class="o">.</span><span class="n">updateDepth</span><span class="p">(</span><span class="n">indic</span><span class="p">)</span>
+
+        <span class="c1"># We update the depth of the frames </span>
+        <span class="n">frames_to_update</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">frames_to_update</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames_to_update</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">frames_to_update</span><span class="p">:</span> <span class="n">FrameTools</span><span class="o">.</span><span class="n">calculateDepth</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IndicatorTools.updateIndicator"><a class="viewcode-back" href="../../../index.html#open_anafi.lib.IndicatorTools.updateIndicator">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">updateIndicator</span><span class="p">(</span><span class="n">equation</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">username</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update an indicator. This method will destory it and recreate it restoring all the previous</span>
+<span class="sd">           parameters. It will also update the depth recursively.</span>
+
+<span class="sd">           Note that we cannot modify the indicator&#39;s name.</span>
+
+<span class="sd">           :param equation: The updated equation (updated or not)</span>
+<span class="sd">           :type equation: str</span>
+
+<span class="sd">           :param description: The updated description</span>
+<span class="sd">           :type description: str</span>
+
+<span class="sd">           :param id: The indicator&#39;s id</span>
+<span class="sd">           :type id: int</span>
+
+<span class="sd">           :param username: The username of the user who modified the indicator</span>
+<span class="sd">           :type username: str</span>
+
+<span class="sd">           :return: The updated indicator</span>
+<span class="sd">           :rtype: class:`open_anafi.models.Indicator` </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">indic</span> <span class="o">=</span> <span class="n">Indicator</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">description</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">equation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">indic</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">indic</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Erreur lors de la mise à jour de l</span><span class="se">\&#39;</span><span class="s1">indicateur&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">equation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># JSONify the indicator to save the informations before deleting it</span>
+            <span class="n">backup_indicator</span> <span class="o">=</span> <span class="n">IndicatorSerializer</span><span class="p">(</span><span class="n">indic</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">indic</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Erreur lors de la mise à jour de l</span><span class="se">\&#39;</span><span class="s1">indicateur&#39;</span><span class="p">)</span>
+
+            <span class="n">parsing_tools</span><span class="o">.</span><span class="n">parseIndicator</span><span class="p">(</span><span class="n">backup_indicator</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">),</span>
+                           <span class="n">equation</span><span class="p">,</span>
+                           <span class="n">description</span> <span class="k">if</span> <span class="n">description</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">backup_indicator</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;description&#39;</span><span class="p">),</span>
+                           <span class="n">public</span><span class="o">=</span><span class="n">backup_indicator</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;public&#39;</span><span class="p">),</span>
+                           <span class="n">user</span><span class="o">=</span><span class="n">username</span><span class="p">)</span>
+
+            <span class="n">indic</span> <span class="o">=</span> <span class="n">Indicator</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">backup_indicator</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">backup_indicator</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;frames&#39;</span><span class="p">):</span>
+                <span class="n">indic</span><span class="o">.</span><span class="n">frames</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Frame</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">frame</span><span class="p">))</span>
+
+            <span class="n">indic</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+            <span class="n">IndicatorTools</span><span class="o">.</span><span class="n">updateDepth</span><span class="p">(</span><span class="n">indic</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">Indicator</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">indic</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div></div>
+
+
+
+<span class="k">class</span> <span class="nc">IndicatorParameterTools</span><span class="p">():</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">calculateDepth</span><span class="p">(</span><span class="n">indicatorParameter</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculates the depth of an indicator parameter,</span>
+<span class="sd">           given that all the indicators present in its equation already exist and have the correct depth.</span>
+
+<span class="sd">           :param indicatorParameter: The indicator parameter to evaluate</span>
+<span class="sd">           :type indicatorParameter: class:`open_anafi.models.IndicatorParameter`        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">depth</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">indicators</span> <span class="o">=</span> <span class="n">IndicatorParameterTools</span><span class="o">.</span><span class="n">extract_indicators_from_equation</span><span class="p">(</span><span class="n">indicatorParameter</span><span class="o">.</span><span class="n">original_equation</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indicators</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">indicatorParameter</span><span class="o">.</span><span class="n">depth</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">indicatorParameter</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">indicator</span> <span class="ow">in</span> <span class="n">indicators</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">indicator</span><span class="o">.</span><span class="n">max_depth</span> <span class="o">&gt;</span> <span class="n">depth</span><span class="p">:</span>
+                <span class="n">depth</span> <span class="o">=</span> <span class="n">indicator</span><span class="o">.</span><span class="n">max_depth</span>
+
+        <span class="n">indicatorParameter</span><span class="o">.</span><span class="n">depth</span> <span class="o">=</span> <span class="n">depth</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">indicatorParameter</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">extract_indicators_from_equation</span><span class="p">(</span><span class="n">equation</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieves all the indicator objects contained in a equation</span>
+
+<span class="sd">        :param equation: An equation according to the defined language</span>
+<span class="sd">        :type equation: str</span>
+
+<span class="sd">        :return: The list of all the indicator objects present in the equation</span>
+<span class="sd">        :rtype: list of class:`open_anafi.models.Indicator`</span>
+<span class="sd">        &quot;&quot;&quot;</span> 
+        <span class="n">exp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;[\-\+\/\*\^\(\[\)\]\)]&#39;</span><span class="p">)</span>
+        <span class="n">split_equation</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">strip</span><span class="p">,</span> <span class="n">exp</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">equation</span><span class="p">))))</span>
+        <span class="n">indicators</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">split_equation</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">indic</span> <span class="o">=</span> <span class="n">Indicator</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">item</span><span class="p">)</span>
+                <span class="n">indicators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">indic</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+        <span class="k">return</span> <span class="n">indicators</span>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">OpenAnafi 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Guillaume Lemaire, Arthur Valingot, Jim Bienvenu.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>

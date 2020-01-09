@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>open_anafi.lib.variable_tools &#8212; OpenAnafi 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">OpenAnafi 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for open_anafi.lib.variable_tools</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">django.shortcuts</span> <span class="k">import</span> <span class="n">render</span>
+<span class="kn">from</span> <span class="nn">open_anafi.models</span> <span class="k">import</span> <span class="n">Variable</span><span class="p">,</span> <span class="n">Indicator</span>
+<span class="kn">from</span> <span class="nn">django.db</span> <span class="k">import</span> <span class="n">connections</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span> <span class="c1"># import panda stuff</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">open_anafi.lib</span> <span class="k">import</span> <span class="n">SoldeFactory</span>
+
+<div class="viewcode-block" id="VariableTools"><a class="viewcode-back" href="../../../index.html#open_anafi.lib.VariableTools">[docs]</a><span class="k">class</span> <span class="nc">VariableTools</span><span class="p">():</span>
+<div class="viewcode-block" id="VariableTools.feed_variable"><a class="viewcode-back" href="../../../index.html#open_anafi.lib.VariableTools.feed_variable">[docs]</a>	<span class="nd">@staticmethod</span>
+	<span class="k">def</span> <span class="nf">feed_variable</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">exges_list</span><span class="p">,</span> <span class="n">exges_effective</span><span class="p">,</span> <span class="n">data_frame_comptes</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Evaluates a variable with the given data.</span>
+
+<span class="sd">		:param variable: The variable object</span>
+<span class="sd">		:type variable: class:`open_anafi.models.Variable`</span>
+
+<span class="sd">		:param exges_list: The range of exercices given by the user</span>
+<span class="sd">		:type exges_list: dict</span>
+
+<span class="sd">		:param exges_effective: The effective range of exercices (without the empty ones)</span>
+<span class="sd">		:type exges_effective: dict</span>
+
+<span class="sd">		:param data_frame_comptes: The account data</span>
+<span class="sd">		:type data_frame_comptes: class:`pandas.DataFrame`</span>
+
+<span class="sd">		:return: A numpy array with the variable evaluation for each year (zero for empty exercices)</span>
+<span class="sd">		:rtype: class:`numpy.Array`</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">data_frame_comptes</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+			<span class="k">del</span> <span class="n">data_frame_comptes</span><span class="p">[</span><span class="s1">&#39;comptes&#39;</span><span class="p">]</span>
+			<span class="n">data_frame_comptes</span> <span class="o">=</span> <span class="n">data_frame_comptes</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&#39;exercice&#39;</span><span class="p">,</span> <span class="s1">&#39;cptop&#39;</span><span class="p">])[[</span><span class="s2">&quot;cptcre&quot;</span><span class="p">,</span> <span class="s2">&quot;cptdeb&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+			<span class="n">solde_function</span> <span class="o">=</span> <span class="n">SoldeFactory</span><span class="o">.</span><span class="n">factory</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">type_solde</span><span class="p">,</span> <span class="n">variable</span><span class="o">.</span><span class="n">solde</span><span class="p">)</span>
+
+			<span class="n">exges_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">exges_list</span><span class="p">)</span>
+			<span class="n">exmax</span> <span class="o">=</span> <span class="n">exges_list</span><span class="p">[</span><span class="n">exges_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+			<span class="n">mnt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">exges_size</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">exercice</span> <span class="ow">in</span> <span class="n">exges_effective</span><span class="p">:</span>
+				<span class="c1"># We take into account the type of solde</span>
+				<span class="n">data_frame_exges</span> <span class="o">=</span> <span class="n">data_frame_comptes</span><span class="p">[</span><span class="n">data_frame_comptes</span><span class="p">[</span><span class="s1">&#39;exercice&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">exercice</span><span class="p">]</span>
+				<span class="n">c</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">5</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">6</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">7</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}</span>
+				<span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">5</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">6</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">7</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}</span>
+				<span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data_frame_exges</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+					<span class="n">c</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;cptop&#39;</span><span class="p">])]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;cptcre&#39;</span><span class="p">])</span>
+					<span class="n">d</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;cptop&#39;</span><span class="p">])]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;cptdeb&#39;</span><span class="p">])</span>
+
+				<span class="n">mnt</span><span class="p">[(</span><span class="n">exercice</span> <span class="o">-</span> <span class="n">exmax</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">exges_size</span><span class="p">]</span> <span class="o">=</span> <span class="n">solde_function</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+			<span class="k">return</span> <span class="n">mnt</span>
+		<span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">exges_list</span><span class="p">))</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">OpenAnafi 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Guillaume Lemaire, Arthur Valingot, Jim Bienvenu.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>

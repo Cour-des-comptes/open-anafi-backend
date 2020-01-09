@@ -1,0 +1,688 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>open_anafi.lib.excelwriter_tools &#8212; OpenAnafi 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">OpenAnafi 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for open_anafi.lib.excelwriter_tools</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">openpyxl</span> <span class="k">import</span> <span class="n">load_workbook</span><span class="p">,</span> <span class="n">Workbook</span>
+<span class="kn">from</span> <span class="nn">openpyxl.utils.dataframe</span> <span class="k">import</span> <span class="n">dataframe_to_rows</span>
+<span class="kn">from</span> <span class="nn">openpyxl.utils</span> <span class="k">import</span> <span class="n">get_column_letter</span>
+<span class="kn">from</span> <span class="nn">openpyxl.styles</span> <span class="k">import</span> <span class="n">PatternFill</span><span class="p">,</span> <span class="n">Alignment</span><span class="p">,</span> <span class="n">Border</span><span class="p">,</span> <span class="n">Side</span><span class="p">,</span> <span class="n">Font</span><span class="p">,</span> <span class="n">GradientFill</span>
+<span class="kn">from</span> <span class="nn">openpyxl.styles.numbers</span> <span class="k">import</span> <span class="n">FORMAT_PERCENTAGE</span><span class="p">,</span> <span class="n">FORMAT_CURRENCY_EUR_SIMPLE</span>
+<span class="kn">from</span> <span class="nn">openpyxl.worksheet.table</span> <span class="k">import</span> <span class="n">Table</span><span class="p">,</span> <span class="n">TableStyleInfo</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">random</span> <span class="k">import</span> <span class="n">randrange</span>
+
+<div class="viewcode-block" id="ExcelWriterTools"><a class="viewcode-back" href="../../../index.html#open_anafi.lib.ExcelWriterTools">[docs]</a><span class="k">class</span> <span class="nc">ExcelWriterTools</span><span class="p">:</span>
+<div class="viewcode-block" id="ExcelWriterTools.write_report"><a class="viewcode-back" href="../../../index.html#open_anafi.lib.ExcelWriterTools.write_report">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">write_report</span><span class="p">(</span><span class="n">computed_indicators</span><span class="p">,</span> <span class="n">ident</span><span class="p">,</span> <span class="n">type_ident</span><span class="p">,</span> <span class="n">exmin</span><span class="p">,</span> <span class="n">exmax</span><span class="p">,</span> <span class="n">libsiret</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">dps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">aggregate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Writes an open_anafi report into an excel file.</span>
+
+<span class="sd">    :param computed_indicators: A list of all the indicators and their values for each year to evaluate</span>
+<span class="sd">    :type computed_indicators: class:`pandas.DataFrame`</span>
+
+<span class="sd">    :param ident: The identifier(s) the report was evaluated on (A concatenation if multiple SIRETS)</span>
+<span class="sd">    :type ident: str</span>
+
+<span class="sd">    :param type_ident: The type of the identifier (SIRET, SIREN, FINESS)</span>
+<span class="sd">    :type type_ident: str</span>
+
+<span class="sd">    :param exmin: The lower bound of the range the report was calculated on</span>
+<span class="sd">    :type exmin: int</span>
+
+<span class="sd">    :param exmax: The lower bound of the range the report was calculated on</span>
+<span class="sd">    :type exmax: int</span>
+
+<span class="sd">    :param libsiret: The establishment&#39;s label (#TODO check this, not sure)</span>
+<span class="sd">    :type libsiret: str</span>
+
+<span class="sd">    :param model_name: The name of the reference excel file (The model to fill)</span>
+<span class="sd">    :type model_name: str</span>
+
+<span class="sd">    :param dps: #TODO Figure out wtf this is</span>
+<span class="sd">    :type dps: dict</span>
+
+<span class="sd">    :param aggregate: If the report was an aggreggation of multiple identifiers or not</span>
+<span class="sd">    :type aggregate: bool</span>
+
+<span class="sd">    :return: The name of the created Excel file</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># put data in excel</span>
+    <span class="n">wb</span> <span class="o">=</span> <span class="n">load_workbook</span><span class="p">(</span><span class="s1">&#39;./open_anafi/templates/&#39;</span> <span class="o">+</span> <span class="n">model_name</span><span class="p">)</span>
+    <span class="n">double</span> <span class="o">=</span> <span class="n">Side</span><span class="p">(</span><span class="n">border_style</span><span class="o">=</span><span class="s2">&quot;thin&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;000000&quot;</span><span class="p">)</span>
+    <span class="n">border</span> <span class="o">=</span> <span class="n">Border</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="n">double</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="n">double</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="n">double</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="n">double</span><span class="p">)</span>
+    <span class="n">font_header</span> <span class="o">=</span> <span class="n">Font</span><span class="p">(</span><span class="n">italic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;000000&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Arial&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+    <span class="n">al_header</span> <span class="o">=</span> <span class="n">Alignment</span><span class="p">(</span><span class="n">horizontal</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">vertical</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">)</span>
+    <span class="n">al_dps</span> <span class="o">=</span> <span class="n">Alignment</span><span class="p">(</span><span class="n">horizontal</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">vertical</span><span class="o">=</span><span class="s2">&quot;bottom&quot;</span><span class="p">)</span>
+    <span class="n">al_indic</span> <span class="o">=</span> <span class="n">Alignment</span><span class="p">(</span><span class="n">horizontal</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">vertical</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">)</span>
+    <span class="n">fill</span><span class="o">=</span><span class="n">PatternFill</span><span class="p">(</span><span class="s2">&quot;solid&quot;</span><span class="p">,</span> <span class="n">fgColor</span><span class="o">=</span><span class="s2">&quot;FFFFFF&quot;</span><span class="p">)</span>
+    <span class="n">sheets</span> <span class="o">=</span> <span class="n">wb</span><span class="o">.</span><span class="n">worksheets</span>
+    <span class="n">old_total_type</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">sheet</span> <span class="ow">in</span> <span class="n">sheets</span><span class="p">:</span>
+      <span class="n">max_row</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">max_row</span>
+      <span class="n">c</span> <span class="o">=</span> <span class="n">get_column_letter</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+      <span class="n">r</span> <span class="o">=</span> <span class="mi">1</span>
+      <span class="n">total_type</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="k">while</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="n">max_row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">while</span> <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="n">max_row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+          <span class="n">r</span> <span class="o">+=</span> <span class="mi">1</span>
+          <span class="n">total_type</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">total_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+          <span class="n">type_cell</span> <span class="o">=</span> <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_column_letter</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+          <span class="n">type_cell</span><span class="o">.</span><span class="n">alignment</span> <span class="o">=</span> <span class="n">Alignment</span><span class="p">(</span><span class="n">horizontal</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+          <span class="n">total_type</span> <span class="o">=</span> <span class="n">type_cell</span><span class="o">.</span><span class="n">value</span> <span class="k">if</span> <span class="n">type_cell</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;unknown&quot;</span>
+
+
+        <span class="n">indicator_name</span> <span class="o">=</span> <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">get_column_letter</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="n">cell</span> <span class="o">=</span> <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">cell</span><span class="o">.</span><span class="n">_style</span><span class="p">)</span>
+        <span class="n">hyperlink</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">cell</span><span class="o">.</span><span class="n">hyperlink</span><span class="p">)</span>
+        <span class="n">number_format</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">cell</span><span class="o">.</span><span class="n">number_format</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">computed_indicators</span><span class="p">[</span><span class="n">indicator_name</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">cell</span> <span class="o">=</span> <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span>
+            <span class="n">cell</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">computed_indicators</span><span class="p">[</span><span class="n">indicator_name</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">cell</span><span class="o">.</span><span class="n">_style</span> <span class="o">=</span> <span class="n">style</span>
+            <span class="n">cell</span><span class="o">.</span><span class="n">hyperlink</span> <span class="o">=</span> <span class="n">hyperlink</span>
+            <span class="n">cell</span><span class="o">.</span><span class="n">number_format</span> <span class="o">=</span> <span class="n">number_format</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">get_column_letter</span><span class="p">(</span><span class="mi">4</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span>
+
+          <span class="n">current_indicator</span> <span class="o">=</span> <span class="n">computed_indicators</span><span class="p">[</span><span class="n">indicator_name</span><span class="p">]</span>
+          <span class="k">if</span> <span class="n">total_type</span> <span class="o">==</span> <span class="s2">&quot;$totalV&quot;</span><span class="p">:</span>
+
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_indicator</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+              <span class="n">TVAM</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+              <span class="n">TVAM</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">current_indicator</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">current_indicator</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span>
+
+            <span class="n">copied_font</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;{chr(ord(c) - 1)}</span><span class="si">{r}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">font</span><span class="p">)</span>
+            <span class="n">copied_font</span><span class="o">.</span><span class="n">italic</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">TVAM</span>
+
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">font</span> <span class="o">=</span> <span class="n">copied_font</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">number_format</span> <span class="o">=</span> <span class="s1">&#39;0.0%&#39;</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;{chr(ord(c) - 1)}</span><span class="si">{r}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">border</span><span class="p">)</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">fill</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;{chr(ord(c) - 1)}</span><span class="si">{r}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fill</span><span class="p">)</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">alignment</span> <span class="o">=</span> <span class="n">al_indic</span>
+          <span class="k">elif</span> <span class="n">total_type</span> <span class="o">==</span> <span class="s2">&quot;$totalM&quot;</span><span class="p">:</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="n">current_indicator</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+            <span class="n">copied_font</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;{chr(ord(c) - 1)}</span><span class="si">{r}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">font</span><span class="p">)</span>
+            <span class="n">copied_format</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;{chr(ord(c) - 1)}</span><span class="si">{r}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">number_format</span><span class="p">)</span>
+            <span class="n">copied_font</span><span class="o">.</span><span class="n">italic</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">mean</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">is_masked</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span>
+
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">font</span> <span class="o">=</span> <span class="n">copied_font</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">number_format</span> <span class="o">=</span> <span class="n">copied_format</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;{chr(ord(c) - 1)}</span><span class="si">{r}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">border</span><span class="p">)</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">fill</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;{chr(ord(c) - 1)}</span><span class="si">{r}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fill</span><span class="p">)</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">alignment</span> <span class="o">=</span> <span class="n">al_indic</span>
+          <span class="k">elif</span> <span class="n">total_type</span> <span class="o">==</span> <span class="s2">&quot;$totalC&quot;</span><span class="p">:</span>
+
+            <span class="n">copied_font</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;{chr(ord(c) - 1)}</span><span class="si">{r}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">font</span><span class="p">)</span>
+            <span class="n">copied_font</span><span class="o">.</span><span class="n">italic</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">current_indicator</span><span class="p">))</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">font</span> <span class="o">=</span> <span class="n">copied_font</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">number_format</span> <span class="o">=</span> <span class="s1">&#39;#,##0_-&#39;</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;{chr(ord(c) - 1)}</span><span class="si">{r}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">border</span><span class="p">)</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">fill</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;{chr(ord(c) - 1)}</span><span class="si">{r}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fill</span><span class="p">)</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">alignment</span> <span class="o">=</span> <span class="n">al_indic</span>
+          <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+          <span class="k">pass</span>
+        <span class="k">finally</span><span class="p">:</span>
+          <span class="n">r</span> <span class="o">+=</span> <span class="mi">1</span>
+          <span class="n">c</span> <span class="o">=</span> <span class="n">get_column_letter</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+      <span class="n">c</span> <span class="o">=</span> <span class="n">get_column_letter</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+      <span class="n">r</span> <span class="o">=</span> <span class="mi">1</span>
+      <span class="n">exs</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">exmin</span><span class="p">,</span> <span class="n">exmax</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+      <span class="k">while</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="n">max_row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">while</span> <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span> <span class="o">!=</span> <span class="s1">&#39;$exges&#39;</span> <span class="ow">and</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="n">max_row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+          <span class="n">r</span> <span class="o">+=</span> <span class="mi">1</span>
+          <span class="n">c</span> <span class="o">=</span> <span class="n">get_column_letter</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+          <span class="n">total_type</span> <span class="o">=</span> <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span>
+          <span class="n">c</span> <span class="o">=</span> <span class="n">get_column_letter</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="n">max_row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+          <span class="n">cell</span> <span class="o">=</span> <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span>
+          <span class="n">border</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">cell</span><span class="o">.</span><span class="n">border</span><span class="p">)</span>
+          <span class="n">fill</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">cell</span><span class="o">.</span><span class="n">fill</span><span class="p">)</span>
+          <span class="n">font</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">cell</span><span class="o">.</span><span class="n">font</span><span class="p">)</span>
+          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">exs</span><span class="p">))</span> <span class="p">:</span>
+            <span class="n">cell</span> <span class="o">=</span> <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span>
+            <span class="n">cell</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">exs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">cell</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">border</span>
+            <span class="n">cell</span><span class="o">.</span><span class="n">fill</span> <span class="o">=</span> <span class="n">fill</span>
+            <span class="n">cell</span><span class="o">.</span><span class="n">font</span> <span class="o">=</span> <span class="n">font</span>
+            <span class="n">cell</span><span class="o">.</span><span class="n">alignment</span> <span class="o">=</span> <span class="n">Alignment</span><span class="p">(</span><span class="n">horizontal</span> <span class="o">=</span> <span class="s1">&#39;center&#39;</span><span class="p">)</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">get_column_letter</span><span class="p">(</span><span class="mi">4</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span>
+
+          <span class="k">if</span> <span class="n">total_type</span> <span class="o">==</span> <span class="s2">&quot;$totalV&quot;</span><span class="p">:</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;Var. annuelle moyenne&quot;</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">font</span> <span class="o">=</span> <span class="n">font_header</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;{chr(ord(c) - 1)}</span><span class="si">{r}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">border</span><span class="p">)</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">alignment</span> <span class="o">=</span> <span class="n">al_header</span>
+            <span class="n">sheet</span><span class="o">.</span><span class="n">column_dimensions</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{c}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">17</span>
+          <span class="k">elif</span> <span class="n">total_type</span> <span class="o">==</span> <span class="s2">&quot;$totalM&quot;</span><span class="p">:</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">font</span> <span class="o">=</span> <span class="n">font_header</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;{chr(ord(c) - 1)}</span><span class="si">{r}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">border</span><span class="p">)</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">alignment</span> <span class="o">=</span> <span class="n">al_header</span>
+            <span class="n">sheet</span><span class="o">.</span><span class="n">column_dimensions</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{c}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">17</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;Moyenne&quot;</span>
+          <span class="k">elif</span> <span class="n">total_type</span> <span class="o">==</span> <span class="s2">&quot;$totalC&quot;</span><span class="p">:</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;Cumul sur les années&quot;</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">font</span> <span class="o">=</span> <span class="n">font_header</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;{chr(ord(c) - 1)}</span><span class="si">{r}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">border</span><span class="p">)</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">alignment</span> <span class="o">=</span> <span class="n">al_header</span>
+            <span class="n">sheet</span><span class="o">.</span><span class="n">column_dimensions</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{c}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">17</span>
+          <span class="n">c</span> <span class="o">=</span> <span class="n">get_column_letter</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+      <span class="c1"># if the value is a string</span>
+      <span class="n">siret</span> <span class="o">=</span> <span class="n">ident</span><span class="p">[</span><span class="s1">&#39;ident&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">siret</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">patterns</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;$libsiret&#39;</span><span class="p">:</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{libsiret}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+                    <span class="s1">&#39;$siret&#39;</span><span class="p">:</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{siret}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)}</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">patterns</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;$libsiret&#39;</span><span class="p">:</span> <span class="s1">&#39;Etablissements multiples&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;$siret&#39;</span><span class="p">:</span> <span class="s1">&#39;Etablissements multiples&#39;</span><span class="p">}</span>
+      <span class="c1"># if the value is a list</span>
+      <span class="n">patterns_list</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;$dp&#39;</span><span class="p">:</span> <span class="n">dps</span><span class="p">}</span>
+      <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">:</span>
+        <span class="n">coordinates</span> <span class="o">=</span> <span class="n">ExcelWriterTools</span><span class="o">.</span><span class="n">_look_for_pattern</span><span class="p">(</span><span class="n">sheet</span><span class="p">,</span> <span class="n">pattern</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">coordinate</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="p">:</span>
+          <span class="n">sheet</span><span class="p">[</span><span class="n">coordinate</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">sheet</span><span class="p">[</span><span class="n">coordinate</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">patterns</span><span class="p">[</span><span class="n">pattern</span><span class="p">])</span>
+          <span class="n">sheet</span><span class="p">[</span><span class="n">coordinate</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">border</span>
+      <span class="k">for</span> <span class="n">pattern_list</span> <span class="ow">in</span> <span class="n">patterns_list</span><span class="p">:</span>
+        <span class="n">coordinates</span> <span class="o">=</span> <span class="n">ExcelWriterTools</span><span class="o">.</span><span class="n">_look_for_pattern</span><span class="p">(</span><span class="n">sheet</span><span class="p">,</span> <span class="n">pattern_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">coordinate</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="p">:</span>
+          <span class="n">col</span> <span class="o">=</span> <span class="n">coordinate</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;col&#39;</span><span class="p">]</span>
+          <span class="n">row</span> <span class="o">=</span> <span class="n">coordinate</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;row&#39;</span><span class="p">]</span>
+          <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">patterns_list</span><span class="p">[</span><span class="n">pattern_list</span><span class="p">]:</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;{get_column_letter(col)}</span><span class="si">{row}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">el</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;{get_column_letter(col)}</span><span class="si">{row}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">border</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;{get_column_letter(col)}</span><span class="si">{row}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">alignment</span> <span class="o">=</span> <span class="n">al_dps</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;{get_column_letter(col)}</span><span class="si">{row}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">font</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;{get_column_letter(col - 1)}</span><span class="si">{row}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">font</span><span class="p">)</span>
+            <span class="n">col</span> <span class="o">+=</span> <span class="mi">1</span>
+
+      <span class="n">coordinates</span> <span class="o">=</span> <span class="n">ExcelWriterTools</span><span class="o">.</span><span class="n">_look_for_pattern</span><span class="p">(</span><span class="n">sheet</span><span class="p">,</span> <span class="s1">&#39;$perimeter&#39;</span><span class="p">)</span>
+
+      <span class="k">if</span> <span class="n">coordinates</span><span class="p">:</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">sheet</span><span class="o">.</span><span class="n">delete_rows</span><span class="p">(</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;row&#39;</span><span class="p">])</span>
+        <span class="n">ExcelWriterTools</span><span class="o">.</span><span class="n">write_perimeter_headers</span><span class="p">(</span><span class="n">sheet</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">dataframe_to_rows</span><span class="p">(</span><span class="n">ident</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+          <span class="n">sheet</span><span class="o">.</span><span class="n">cell</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+          <span class="n">sheet</span><span class="o">.</span><span class="n">cell</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+          <span class="n">sheet</span><span class="o">.</span><span class="n">cell</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+          <span class="n">sheet</span><span class="o">.</span><span class="n">cell</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+          <span class="n">sheet</span><span class="o">.</span><span class="n">cell</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+          <span class="n">sheet</span><span class="o">.</span><span class="n">cell</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+          <span class="n">sheet</span><span class="o">.</span><span class="n">cell</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
+          <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">dataframe_to_rows</span><span class="p">(</span><span class="n">ident</span><span class="p">)))</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">tab</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">displayName</span><span class="o">=</span><span class="s2">&quot;Table1&quot;</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">f</span><span class="s2">&quot;A1:G</span><span class="si">{count}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Add a default style with striped rows and banded columns</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">TableStyleInfo</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;TableStyleMedium9&quot;</span><span class="p">,</span> <span class="n">showFirstColumn</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">showLastColumn</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">showRowStripes</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">showColumnStripes</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">tab</span><span class="o">.</span><span class="n">tableStyleInfo</span> <span class="o">=</span> <span class="n">style</span>
+        <span class="n">sheet</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">tab</span><span class="p">)</span>
+        <span class="n">sheet</span><span class="o">.</span><span class="n">column_dimensions</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">23</span>
+        <span class="n">sheet</span><span class="o">.</span><span class="n">column_dimensions</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">23</span>
+        <span class="n">sheet</span><span class="o">.</span><span class="n">column_dimensions</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">23</span>
+        <span class="n">sheet</span><span class="o">.</span><span class="n">column_dimensions</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">23</span>
+        <span class="n">sheet</span><span class="o">.</span><span class="n">column_dimensions</span><span class="p">[</span><span class="s1">&#39;E&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">28</span>
+        <span class="n">sheet</span><span class="o">.</span><span class="n">column_dimensions</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">28</span>
+        <span class="n">sheet</span><span class="o">.</span><span class="n">column_dimensions</span><span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">23</span>
+      <span class="c1"># for sheet in sheets:</span>
+      <span class="c1">#   for merged_cell in sheet.merged_cells.ranges:</span>
+      <span class="c1">#     ExcelWriterTools.border_maker(sheet, str(merged_cell), border=border)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">aggregate</span><span class="p">:</span>
+      <span class="n">siret_name</span> <span class="o">=</span> <span class="n">patterns</span><span class="p">[</span><span class="s1">&#39;$siret&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;et&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">siret_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">randrange</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">9999</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">siret_name</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">20</span><span class="p">:</span>
+      <span class="n">siret_name</span> <span class="o">=</span> <span class="n">siret_name</span><span class="p">[:</span><span class="mi">20</span><span class="p">]</span>
+
+
+    <span class="n">report_name</span> <span class="o">=</span> <span class="s1">&#39;FRAME_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">.xlsx&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">siret_name</span><span class="p">,</span> <span class="n">type_ident</span><span class="p">,</span> <span class="n">exmin</span><span class="p">,</span> <span class="n">exmax</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">_%H%M%S&quot;</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">report_name</span><span class="p">)</span>
+      <span class="c1"># wb = ExcelWriterTools._write_balance(balances, wb, ident, libsiret, exmin, exmax)</span>
+
+      <span class="c1"># for indicator in list(computed_indicators.keys()):</span>
+      <span class="c1"># 	print(&quot;step 4.1&quot;)</span>
+      <span class="c1"># 	df = computed_indicators[indicator][1]</span>
+      <span class="c1"># 	if df is not None:</span>
+      <span class="c1"># 		if first:</span>
+      <span class="c1"># 			first = False</span>
+      <span class="c1"># 			for head in list(df.columns.values):</span>
+      <span class="c1"># 				sheet[&#39;{}{}&#39;.format(get_column_letter(c), r)].value = head</span>
+      <span class="c1"># 				c += 1</span>
+      <span class="c1"># 			c = 1</span>
+      <span class="c1"># 			r = 1</span>
+      <span class="c1"># 		for index, row in df.iterrows():</span>
+      <span class="c1"># 			print(&quot;step 4.2&quot;)</span>
+      <span class="c1"># 			r += 1</span>
+      <span class="c1"># 			for value in row.iteritems():</span>
+      <span class="c1"># 				print(&quot;step 4.3&quot;)</span>
+      <span class="c1"># 				sheet[&#39;{}{}&#39;.format(get_column_letter(c), r)].value = value[1]</span>
+      <span class="c1"># 				c += 1</span>
+      <span class="c1"># 			c = 1</span>
+
+
+    <span class="n">wb</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/reports/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)))),</span> <span class="n">report_name</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">report_name</span></div>
+
+<div class="viewcode-block" id="ExcelWriterTools.write_perimeter_headers"><a class="viewcode-back" href="../../../index.html#open_anafi.lib.ExcelWriterTools.write_perimeter_headers">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">write_perimeter_headers</span><span class="p">(</span><span class="n">sheet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Writes the headers for the perimeter sheet of the report</span>
+
+<span class="sd">    :param sheet: The excel sheet to work on</span>
+<span class="sd">    :type sheet: class:`openpyxl.Worksheet`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;A1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Code budget&quot;</span>
+    <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;B1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Nomenclature&quot;</span>
+    <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;C1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Type d&#39;établissement&quot;</span>
+    <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;D1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Exercice&quot;</span>
+    <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;E1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Identifiant&quot;</span>
+    <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;F1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Libellé&quot;</span>
+    <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;G1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Population&quot;</span></div>
+
+  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">_look_for_pattern</span><span class="p">(</span><span class="n">work_sheet</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Will look for a given pattern across an excel work sheet and return the locations.</span>
+
+<span class="sd">      :param work_sheet: The excel work sheet to work on</span>
+<span class="sd">      :type work_sheet: openpyxl.Worksheet</span>
+
+<span class="sd">      :param pattern: The pattern to look for</span>
+<span class="sd">      :type pattern: str</span>
+
+<span class="sd">      :return: for a given work_sheet,</span>
+<span class="sd">        it will return a list of tuple, the first element is a string like &#39;A1&#39;</span>
+<span class="sd">        the second one is a dictionary {&#39;col&#39;, integer, &#39;row&#39;: integer}</span>
+<span class="sd">      :rtype: dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">coordinates</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">max_row</span> <span class="o">=</span> <span class="n">work_sheet</span><span class="o">.</span><span class="n">max_row</span>
+    <span class="n">max_col</span> <span class="o">=</span> <span class="n">work_sheet</span><span class="o">.</span><span class="n">max_column</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+      <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_col</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">coordinate</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;{get_column_letter(col)}</span><span class="si">{row}</span><span class="s1">&#39;</span>
+        <span class="n">current_value</span> <span class="o">=</span> <span class="n">work_sheet</span><span class="p">[</span><span class="n">coordinate</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">if</span> <span class="n">current_value</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+          <span class="c1"># the current_value has to be casted to string to use the following syntax &#39;pattern in iterable&#39;</span>
+          <span class="k">if</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">current_value</span><span class="p">):</span>
+            <span class="n">coordinates</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">coordinate</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;col&#39;</span><span class="p">:</span> <span class="n">col</span><span class="p">,</span> <span class="s1">&#39;row&#39;</span><span class="p">:</span> <span class="n">row</span><span class="p">}))</span>
+
+    <span class="k">return</span> <span class="n">coordinates</span>
+
+
+<div class="viewcode-block" id="ExcelWriterTools.write_balance"><a class="viewcode-back" href="../../../index.html#open_anafi.lib.ExcelWriterTools.write_balance">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">write_balance</span><span class="p">(</span><span class="n">identifiers</span><span class="p">,</span> <span class="n">identifiers_type</span><span class="p">,</span> <span class="n">year_min</span><span class="p">,</span> <span class="n">year_max</span><span class="p">,</span> <span class="n">libsiret</span><span class="p">,</span> <span class="n">balances</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a &#39;Balance des comptes&#39; report, which is a dump of the data in the accounts</span>
+
+<span class="sd">    :param identifiers: The identifier(s) the balance was calculated on (concatenation in case of an aggreggation)</span>
+<span class="sd">    :type identifiers: str</span>
+
+<span class="sd">    :param identifiers_type: The type of the identifiers (SIRET, SIREN, FINESS)</span>
+<span class="sd">    :type identifiers_type: str</span>
+
+<span class="sd">    :param year_min: The lower bound of the range the balance was calculated on</span>
+<span class="sd">    :type year_min: int</span>
+
+<span class="sd">    :param year_max: The lower bound of the range the balance was calculated on</span>
+<span class="sd">    :type year_max: int</span>
+
+<span class="sd">    :param libsiret: The establishment&#39;s label (#TODO check this, not sure)</span>
+<span class="sd">    :type libsiret: str</span>
+
+<span class="sd">    :param balances: The dataframe containing all the infos to write</span>
+<span class="sd">    :type balances: class:`pandas.DataFrame`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">balance_name</span> <span class="o">=</span> <span class="s1">&#39;BALANCE_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">.xlsx&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">identifiers_type</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{identifiers}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;et&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span> <span class="n">year_min</span><span class="p">,</span> <span class="n">year_max</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">_%H%M%S&quot;</span><span class="p">))</span>
+    <span class="n">wb</span> <span class="o">=</span> <span class="n">Workbook</span><span class="p">()</span>
+    <span class="n">wb</span> <span class="o">=</span> <span class="n">ExcelWriterTools</span><span class="o">.</span><span class="n">_write_balance</span><span class="p">(</span><span class="n">balances</span><span class="p">,</span> <span class="n">wb</span><span class="p">,</span> <span class="n">identifiers</span><span class="p">,</span> <span class="n">libsiret</span><span class="p">,</span> <span class="n">year_min</span><span class="p">,</span> <span class="n">year_max</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">wb</span><span class="p">[</span><span class="s2">&quot;Sheet&quot;</span><span class="p">]</span>
+    <span class="n">wb</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/reports/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)))),</span> <span class="n">balance_name</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">balance_name</span></div>
+
+  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">_write_balance</span><span class="p">(</span><span class="n">balances</span><span class="p">,</span> <span class="n">wb</span><span class="p">,</span> <span class="n">ident</span><span class="p">,</span> <span class="n">libsiret</span><span class="p">,</span> <span class="n">exmin</span><span class="p">,</span> <span class="n">exmax</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Writes the &#39;Balance des comptes&#39; report</span>
+
+<span class="sd">    :param balances: The dataframe containing all the infos to write</span>
+<span class="sd">    :type balances: class:`pandas.DataFrame`</span>
+
+<span class="sd">    :param wb: The openpyxl workbook to work on</span>
+<span class="sd">    :type wb: class:`openpyxl.Workbook`</span>
+
+<span class="sd">    :param ident: The identifier(s) the balance was calculated on. (A concatenation in case of an aggreggation)</span>
+<span class="sd">    :type ident: str</span>
+
+<span class="sd">    :param exmin: The lower bound of the range the balance was calculated on</span>
+<span class="sd">    :type exmin: int</span>
+
+<span class="sd">    :param exmax: The lower bound of the range the balance was calculated on</span>
+<span class="sd">    :type exmax: int</span>
+
+<span class="sd">    :param libsiret: The establishment&#39;s label (#TODO check this, not sure)</span>
+<span class="sd">    :type libsiret: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">## Balance for each year in the same excel</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">sheet</span> <span class="o">=</span> <span class="n">wb</span><span class="o">.</span><span class="n">create_sheet</span><span class="p">(</span><span class="s2">&quot;Balances des comptes&quot;</span><span class="p">)</span>
+    <span class="c1">#strip_rows(sheet)</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="s1">&#39;J&#39;</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="s1">&#39;L&#39;</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+      <span class="n">sheet</span><span class="o">.</span><span class="n">column_dimensions</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">13</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">]:</span>
+      <span class="n">sheet</span><span class="o">.</span><span class="n">row_dimensions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="mi">30</span>
+
+    <span class="n">double</span> <span class="o">=</span> <span class="n">Side</span><span class="p">(</span><span class="n">border_style</span><span class="o">=</span><span class="s2">&quot;thin&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;000000&quot;</span><span class="p">)</span>
+    <span class="n">thin</span> <span class="o">=</span> <span class="n">Side</span><span class="p">(</span><span class="n">border_style</span><span class="o">=</span><span class="s2">&quot;thin&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;DDDDDD&quot;</span><span class="p">)</span>
+    <span class="n">border</span> <span class="o">=</span> <span class="n">Border</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="n">double</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="n">double</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="n">double</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="n">double</span><span class="p">)</span>
+    <span class="n">fill</span><span class="o">=</span><span class="n">PatternFill</span><span class="p">(</span><span class="s2">&quot;solid&quot;</span><span class="p">,</span> <span class="n">fgColor</span><span class="o">=</span><span class="s2">&quot;C0C0C0&quot;</span><span class="p">)</span>
+    <span class="n">primary</span><span class="o">=</span><span class="n">PatternFill</span><span class="p">(</span><span class="s2">&quot;solid&quot;</span><span class="p">,</span> <span class="n">fgColor</span><span class="o">=</span><span class="s2">&quot;F8FBFC&quot;</span><span class="p">)</span>
+    <span class="n">secondary</span><span class="o">=</span><span class="n">PatternFill</span><span class="p">(</span><span class="s2">&quot;solid&quot;</span><span class="p">,</span> <span class="n">fgColor</span><span class="o">=</span><span class="s2">&quot;FCFDFD&quot;</span><span class="p">)</span>
+    <span class="n">font</span><span class="o">=</span> <span class="n">Font</span><span class="p">(</span><span class="n">b</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;000000&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Arial&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">al</span> <span class="o">=</span> <span class="n">Alignment</span><span class="p">(</span><span class="n">horizontal</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">vertical</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">)</span>
+
+    <span class="n">ExcelWriterTools</span><span class="o">.</span><span class="n">style_range</span><span class="p">(</span><span class="n">sheet</span><span class="p">,</span> <span class="s1">&#39;C2:M2&#39;</span><span class="p">,</span> <span class="n">border</span><span class="o">=</span><span class="n">border</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">fill</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">,</span> <span class="n">alignment</span><span class="o">=</span><span class="n">al</span><span class="p">)</span>
+    <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;C2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> (n° SIRET : </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">libsiret</span><span class="p">,</span> <span class="n">ident</span><span class="p">)</span>
+
+    <span class="n">ExcelWriterTools</span><span class="o">.</span><span class="n">style_range</span><span class="p">(</span><span class="n">sheet</span><span class="p">,</span> <span class="s1">&#39;C4:M4&#39;</span><span class="p">,</span> <span class="n">border</span><span class="o">=</span><span class="n">border</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">fill</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">Font</span><span class="p">(</span><span class="n">b</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Arial&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">13</span><span class="p">),</span> <span class="n">alignment</span><span class="o">=</span><span class="n">al</span><span class="p">)</span>
+    <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;C4&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> - </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">exmin</span><span class="p">,</span> <span class="n">exmax</span><span class="p">)</span>
+
+    <span class="n">ExcelWriterTools</span><span class="o">.</span><span class="n">style_range</span><span class="p">(</span><span class="n">sheet</span><span class="p">,</span> <span class="s1">&#39;C6:M6&#39;</span><span class="p">,</span> <span class="n">border</span><span class="o">=</span><span class="n">border</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">fill</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">Font</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Arial&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span> <span class="n">alignment</span><span class="o">=</span><span class="n">al</span><span class="p">)</span>
+    <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;C6&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;* Les opérations budgétaires comprennent les opérations réelles + les opérations d&#39;ordre qui sont détaillées dans la colonne &#39;Dont opérations budgétaires d&#39;ordre&#39;&quot;</span>
+
+
+    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">first</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="mi">9</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">balances</span>
+    <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">df</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]:</span>
+          <span class="n">c</span> <span class="o">+=</span> <span class="mi">1</span>
+          <span class="k">continue</span>
+        <span class="c1">#sheet[&#39;{}{}&#39;.format(get_column_letter(c), r - 1)].value = df[column].sum()</span>
+        <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_column_letter</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span><span class="o">.</span><span class="n">number_format</span> <span class="o">=</span> <span class="s1">&#39;#,##0_-&#39;</span>
+        <span class="n">c</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="n">c</span> <span class="o">=</span> <span class="mi">1</span>
+
+      <span class="k">if</span> <span class="n">first</span><span class="p">:</span>
+        <span class="n">first</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">head</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">):</span>
+          <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_column_letter</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">head</span>
+          <span class="n">c</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="mi">9</span>
+      <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">row</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+          <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_column_letter</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+          <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_column_letter</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">number_format</span> <span class="o">=</span> <span class="s1">&#39;#,##0_-&#39;</span>
+          <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]:</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_column_letter</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">Border</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="n">double</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="n">double</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="n">double</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="n">double</span><span class="p">)</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_column_letter</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">font</span> <span class="o">=</span> <span class="n">Font</span><span class="p">(</span><span class="n">b</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;000000&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Arial&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_column_letter</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">fill</span> <span class="o">=</span> <span class="n">fill</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_column_letter</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">alignment</span> <span class="o">=</span> <span class="n">al</span>
+          <span class="k">else</span><span class="p">:</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_column_letter</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">Border</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="n">thin</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="n">thin</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="n">thin</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="n">thin</span><span class="p">)</span>
+            <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_column_letter</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">font</span> <span class="o">=</span> <span class="n">Font</span><span class="p">(</span><span class="n">b</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;000000&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Arial&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">r</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+              <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_column_letter</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">fill</span> <span class="o">=</span> <span class="n">primary</span>
+            <span class="k">else</span><span class="p">:</span>
+              <span class="n">sheet</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_column_letter</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="n">r</span><span class="p">)]</span><span class="o">.</span><span class="n">fill</span> <span class="o">=</span> <span class="n">secondary</span>
+          <span class="n">c</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">r</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">ExcelWriterTools</span><span class="o">.</span><span class="n">write_headers</span><span class="p">(</span><span class="n">sheet</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wb</span>
+
+<div class="viewcode-block" id="ExcelWriterTools.border_maker"><a class="viewcode-back" href="../../../index.html#open_anafi.lib.ExcelWriterTools.border_maker">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">border_maker</span><span class="p">(</span><span class="n">ws</span><span class="p">,</span> <span class="n">cell_range</span><span class="p">,</span> <span class="n">border</span><span class="o">=</span><span class="n">Border</span><span class="p">()):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Apply styles to a range of cells as if they were a single cell.</span>
+
+<span class="sd">    :param ws:  Excel worksheet instance</span>
+<span class="sd">    :type ws: class:`openpyxl.Worksheet`</span>
+
+<span class="sd">    :param range: An excel range to style (e.g. A1:F20)</span>
+<span class="sd">    :type range: str</span>
+
+<span class="sd">    :param border: An openpyxl Border</span>
+<span class="sd">    :type border: class:`openpyxl.styles.Border`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">top</span> <span class="o">=</span> <span class="n">Border</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="n">border</span><span class="o">.</span><span class="n">top</span><span class="p">)</span>
+    <span class="n">left</span> <span class="o">=</span> <span class="n">Border</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="n">border</span><span class="o">.</span><span class="n">left</span><span class="p">)</span>
+    <span class="n">right</span> <span class="o">=</span> <span class="n">Border</span><span class="p">(</span><span class="n">right</span><span class="o">=</span><span class="n">border</span><span class="o">.</span><span class="n">right</span><span class="p">)</span>
+    <span class="n">bottom</span> <span class="o">=</span> <span class="n">Border</span><span class="p">(</span><span class="n">bottom</span><span class="o">=</span><span class="n">border</span><span class="o">.</span><span class="n">bottom</span><span class="p">)</span>
+
+    <span class="n">first_cell</span> <span class="o">=</span> <span class="n">ws</span><span class="p">[</span><span class="n">cell_range</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">ws</span><span class="p">[</span><span class="n">cell_range</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+      <span class="n">cell</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">border</span> <span class="o">+</span> <span class="n">bottom</span>
+    <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+      <span class="n">cell</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">border</span> <span class="o">+</span> <span class="n">top</span>
+
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+      <span class="n">l</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="n">r</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+      <span class="n">l</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">border</span> <span class="o">+</span> <span class="n">left</span>
+      <span class="n">r</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">border</span> <span class="o">+</span> <span class="n">right</span></div>
+
+
+
+<div class="viewcode-block" id="ExcelWriterTools.style_range"><a class="viewcode-back" href="../../../index.html#open_anafi.lib.ExcelWriterTools.style_range">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">style_range</span><span class="p">(</span><span class="n">ws</span><span class="p">,</span> <span class="n">cell_range</span><span class="p">,</span> <span class="n">border</span><span class="o">=</span><span class="n">Border</span><span class="p">(),</span> <span class="n">fill</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">alignment</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Apply styles to a range of cells as if they were a single cell.</span>
+
+<span class="sd">    :param ws:  Excel worksheet instance</span>
+<span class="sd">    :type ws: class:`openpyxl.Worksheet`</span>
+
+<span class="sd">    :param range: An excel range to style (e.g. A1:F20)</span>
+<span class="sd">    :type range: str</span>
+
+<span class="sd">    :param border: An openpyxl Border</span>
+<span class="sd">    :type border: class:`openpyxl.styles.Border`</span>
+
+<span class="sd">    :param fill: An openpyxl PatternFill or GradientFill</span>
+<span class="sd">    :type fill: class:`openpyxl.styles.Fill`</span>
+
+<span class="sd">    :param font: An openpyxl Font object</span>
+<span class="sd">    :type font: class:`openpyxl.styles.Font`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">top</span> <span class="o">=</span> <span class="n">Border</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="n">border</span><span class="o">.</span><span class="n">top</span><span class="p">)</span>
+    <span class="n">left</span> <span class="o">=</span> <span class="n">Border</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="n">border</span><span class="o">.</span><span class="n">left</span><span class="p">)</span>
+    <span class="n">right</span> <span class="o">=</span> <span class="n">Border</span><span class="p">(</span><span class="n">right</span><span class="o">=</span><span class="n">border</span><span class="o">.</span><span class="n">right</span><span class="p">)</span>
+    <span class="n">bottom</span> <span class="o">=</span> <span class="n">Border</span><span class="p">(</span><span class="n">bottom</span><span class="o">=</span><span class="n">border</span><span class="o">.</span><span class="n">bottom</span><span class="p">)</span>
+
+    <span class="n">first_cell</span> <span class="o">=</span> <span class="n">ws</span><span class="p">[</span><span class="n">cell_range</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="k">if</span> <span class="n">alignment</span><span class="p">:</span>
+      <span class="n">ws</span><span class="o">.</span><span class="n">merge_cells</span><span class="p">(</span><span class="n">cell_range</span><span class="p">)</span>
+      <span class="n">first_cell</span><span class="o">.</span><span class="n">alignment</span> <span class="o">=</span> <span class="n">alignment</span>
+
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">ws</span><span class="p">[</span><span class="n">cell_range</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">font</span><span class="p">:</span>
+      <span class="n">first_cell</span><span class="o">.</span><span class="n">font</span> <span class="o">=</span> <span class="n">font</span>
+
+    <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+      <span class="n">cell</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">border</span> <span class="o">+</span> <span class="n">top</span>
+    <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+      <span class="n">cell</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">border</span> <span class="o">+</span> <span class="n">bottom</span>
+
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+      <span class="n">l</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="n">r</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+      <span class="n">l</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">border</span> <span class="o">+</span> <span class="n">left</span>
+      <span class="n">r</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">border</span> <span class="o">+</span> <span class="n">right</span>
+      <span class="k">if</span> <span class="n">fill</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">row</span><span class="p">:</span>
+          <span class="n">c</span><span class="o">.</span><span class="n">fill</span> <span class="o">=</span> <span class="n">fill</span></div>
+
+<div class="viewcode-block" id="ExcelWriterTools.write_headers"><a class="viewcode-back" href="../../../index.html#open_anafi.lib.ExcelWriterTools.write_headers">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">write_headers</span><span class="p">(</span><span class="n">sheet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Writes the headers for a balance des comptes report.</span>
+
+<span class="sd">    :param sheet: The excel worksheet to work on</span>
+<span class="sd">    :type sheet: class:`openpyxl.Worksheet`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">double</span> <span class="o">=</span> <span class="n">Side</span><span class="p">(</span><span class="n">border_style</span><span class="o">=</span><span class="s2">&quot;thin&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;AAAAAA&quot;</span><span class="p">)</span>
+    <span class="n">black</span> <span class="o">=</span> <span class="n">Side</span><span class="p">(</span><span class="n">border_style</span><span class="o">=</span><span class="s2">&quot;thin&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;000000&quot;</span><span class="p">)</span>
+    <span class="n">thin</span> <span class="o">=</span> <span class="n">Side</span><span class="p">(</span><span class="n">border_style</span><span class="o">=</span><span class="s2">&quot;thin&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;DDDDDD&quot;</span><span class="p">)</span>
+    <span class="n">empty</span> <span class="o">=</span> <span class="n">Side</span><span class="p">(</span><span class="n">border_style</span><span class="o">=</span><span class="s2">&quot;thin&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;C0C0C0&quot;</span><span class="p">)</span>
+    <span class="n">border</span> <span class="o">=</span> <span class="n">Border</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="n">double</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="n">double</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="n">double</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="n">double</span><span class="p">)</span>
+    <span class="n">fill</span><span class="o">=</span><span class="n">PatternFill</span><span class="p">(</span><span class="s2">&quot;solid&quot;</span><span class="p">,</span> <span class="n">fgColor</span><span class="o">=</span><span class="s2">&quot;FFFFFF&quot;</span><span class="p">)</span>
+    <span class="n">fillGray</span><span class="o">=</span><span class="n">PatternFill</span><span class="p">(</span><span class="s2">&quot;solid&quot;</span><span class="p">,</span> <span class="n">fgColor</span><span class="o">=</span><span class="s2">&quot;C0C0C0&quot;</span><span class="p">)</span>
+    <span class="n">font</span><span class="o">=</span> <span class="n">Font</span><span class="p">(</span><span class="n">b</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;000000&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Arial&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+    <span class="n">al</span> <span class="o">=</span> <span class="n">Alignment</span><span class="p">(</span><span class="n">horizontal</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">vertical</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">wrap_text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="s2">&quot;Balance d&#39;entrée Débit&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;H&quot;</span><span class="p">:</span> <span class="s2">&quot;Balance d&#39;entrée Crédit&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;I&quot;</span><span class="p">:</span> <span class="s2">&quot;Opérations budgétaires Débit*&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;J&quot;</span><span class="p">:</span> <span class="s2">&quot;Opérations budgétaires Crédit*&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;K&quot;</span><span class="p">:</span> <span class="s2">&quot;Dont op. budg. ordre Débit&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;L&quot;</span><span class="p">:</span> <span class="s2">&quot;Dont op. budg. ordre Crédit&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;M&quot;</span><span class="p">:</span> <span class="s2">&quot;Op. ordre non budg. Débit&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="s2">&quot;Op. ordre non budg. Crédit&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="s2">&quot;Annul. Débit&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;P&quot;</span><span class="p">:</span> <span class="s2">&quot;Annul. Crédit&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;Q&quot;</span><span class="p">:</span> <span class="s2">&quot;Op. année Débit&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;R&quot;</span><span class="p">:</span> <span class="s2">&quot;Op. année Crédit&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;S&quot;</span><span class="p">:</span> <span class="s2">&quot;Balance de sortie Débit&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;T&quot;</span><span class="p">:</span> <span class="s2">&quot;Balance de sortie Crédit&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;U&quot;</span><span class="p">:</span> <span class="s2">&quot;Solde Débit&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;V&quot;</span><span class="p">:</span> <span class="s2">&quot;Solde Crédit&quot;</span>
+    <span class="p">}</span>
+
+    <span class="n">headers_gray</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="s2">&quot;Exercice&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="s2">&quot;SIRET&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="s2">&quot;Organisme&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;D&quot;</span><span class="p">:</span> <span class="s2">&quot;Type budget&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="s2">&quot;Nomenclature&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;F&quot;</span><span class="p">:</span> <span class="s2">&quot;Compte&quot;</span>
+    <span class="p">}</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">headers_gray</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+      <span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{key}</span><span class="s1">8&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+      <span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{key}</span><span class="s1">8&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fill</span> <span class="o">=</span> <span class="n">fillGray</span>
+      <span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{key}</span><span class="s1">8&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">font</span> <span class="o">=</span> <span class="n">font</span>
+      <span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{key}</span><span class="s1">8&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">alignment</span> <span class="o">=</span> <span class="n">al</span>
+      <span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{key}</span><span class="s1">8&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">Border</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="n">black</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="n">black</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="n">black</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="n">black</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">headers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+      <span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{key}</span><span class="s1">8&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+      <span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{key}</span><span class="s1">8&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">font</span> <span class="o">=</span> <span class="n">font</span>
+      <span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{key}</span><span class="s1">8&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">alignment</span> <span class="o">=</span> <span class="n">al</span>
+      <span class="n">sheet</span><span class="p">[</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{key}</span><span class="s1">8&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">border</span> <span class="o">=</span> <span class="n">Border</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="n">thin</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="n">thin</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="n">thin</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="n">thin</span><span class="p">)</span>
+    <span class="n">sheet</span><span class="o">.</span><span class="n">column_dimensions</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">25</span>
+    <span class="n">sheet</span><span class="o">.</span><span class="n">column_dimensions</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">28</span>
+    <span class="n">sheet</span><span class="o">.</span><span class="n">column_dimensions</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="mi">28</span>
+    <span class="n">sheet</span><span class="o">.</span><span class="n">row_dimensions</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="mi">40</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">OpenAnafi 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Guillaume Lemaire, Arthur Valingot, Jim Bienvenu.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>

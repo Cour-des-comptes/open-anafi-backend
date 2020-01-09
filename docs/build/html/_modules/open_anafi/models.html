@@ -1,0 +1,332 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>open_anafi.models &#8212; OpenAnafi 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">OpenAnafi 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for open_anafi.models</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">django.db</span> <span class="k">import</span> <span class="n">models</span>
+<span class="kn">from</span> <span class="nn">mptt.models</span> <span class="k">import</span> <span class="n">MPTTModel</span><span class="p">,</span> <span class="n">TreeForeignKey</span>
+<span class="kn">from</span> <span class="nn">django.contrib.auth.models</span> <span class="k">import</span> <span class="n">User</span>
+<span class="c1"># Create your models here.</span>
+
+<div class="viewcode-block" id="Indicator"><a class="viewcode-back" href="../../index.html#open_anafi.models.Indicator">[docs]</a><span class="k">class</span> <span class="nc">Indicator</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This Table represents an indicator, who can store multiple parameters based on years / budgets, and can be linked to multiple frames.</span>
+
+<span class="sd">        :param name: The name of the indicator</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        </span>
+<span class="sd">        :param description: The description of the indicator</span>
+<span class="sd">        :type description: str</span>
+<span class="sd">        </span>
+<span class="sd">        :param max_depth: The maximum depth among all the parameters</span>
+<span class="sd">        :type max_depth: int</span>
+<span class="sd">        </span>
+<span class="sd">        :param public: Indicates if the indicator is visible to other users</span>
+<span class="sd">        :type public: bool</span>
+
+<span class="sd">        :param last_modified_by: The user who last modified this indicator</span>
+<span class="sd">        :type last_modified_by: class:`django.contrib.auth.models.User`</span>
+
+<span class="sd">        :param frames: The frames the indicator is associated to</span>
+<span class="sd">        :type frames: list, class:`open_anafi.models.Frame`, optional</span>
+
+<span class="sd">        :param parameters: The parameters linked to this indicator</span>
+<span class="sd">        :type parameters: list, class:`open_anafi.models.IndicatorParameter`, optional</span>
+
+<span class="sd">        :param libelles: The list of libelles linked to an indicator:</span>
+<span class="sd">        :type libelles: list, class:`open_anafi.models.IndicatorLibelle`, optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">unique</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">blank</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">max_depth</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">blank</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">public</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">last_modified_by</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">SET_NULL</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;modified_indicators&quot;</span><span class="p">)</span></div>
+    <span class="c1"># equation = models.OneToOneField(Node, on_delete = models.SET_NULL, null = True, related_name = &quot;indicator_node&quot;)</span>
+
+<div class="viewcode-block" id="IndicatorLibelle"><a class="viewcode-back" href="../../index.html#open_anafi.models.IndicatorLibelle">[docs]</a><span class="k">class</span> <span class="nc">IndicatorLibelle</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An indicator can have multiple aliases, for better understanding of its purpose</span>
+
+<span class="sd">    :param libelle: The libelle</span>
+<span class="sd">    :type libelle: str</span>
+
+<span class="sd">    :param indicator: The indicator it describes</span>
+<span class="sd">    :type indicator: class:`open_anafi.models.Indicator`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">libelle</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">indicator</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Indicator</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;libelles&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IndicatorParameter"><a class="viewcode-back" href="../../index.html#open_anafi.models.IndicatorParameter">[docs]</a><span class="k">class</span> <span class="nc">IndicatorParameter</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An indicator parameter, containing a formula. It is linked to a single indicator.</span>
+<span class="sd">    </span>
+<span class="sd">        :param indicator: The indicator this parameter belongs to</span>
+<span class="sd">        :type indicator: class:`open_anafi.model.Indicator`</span>
+
+<span class="sd">        :param year_min: The minimum year for this parameter to apply</span>
+<span class="sd">        :type year_min: int</span>
+
+<span class="sd">        :param year_max: The maximum year for thisparameter to apply</span>
+<span class="sd">        :type year_max: int</span>
+
+<span class="sd">        :param readable_equation: The equation in a python readable way based on tuples</span>
+<span class="sd">        :type readable_equation: tuple</span>
+
+<span class="sd">        :param displaying: Stores parameters related to calculating this parameter. For example, absolute value</span>
+<span class="sd">        :type displaying: str</span>
+
+<span class="sd">        :param institution_type_number: The identifier of the institution this parameter is valid on</span>
+<span class="sd">        :type institution_type_number: int</span>
+
+<span class="sd">        :param institution_type_string: The label of the institution this parameter is valid on</span>
+<span class="sd">        :type institution_type_string: str</span>
+
+<span class="sd">        :param type_budget: Specifies the way we calculate the indicator</span>
+<span class="sd">        :type type_budget: str</span>
+
+<span class="sd">        :param original_equation: The original equation for this parameter, in a human readable way</span>
+<span class="sd">        :type original_equation: str</span>
+
+<span class="sd">        :param depth: How many indicators have to be calculated before this one can</span>
+<span class="sd">        :type depth: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">indicator</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Indicator</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">related_name</span> <span class="o">=</span> <span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="n">on_delete</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
+    <span class="n">year_min</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">year_max</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">readable_equation</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">displaying</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">institution_type_number</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">institution_type_string</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">type_budget</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">original_equation</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">depth</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Nomenclature"><a class="viewcode-back" href="../../index.html#open_anafi.models.Nomenclature">[docs]</a><span class="k">class</span> <span class="nc">Nomenclature</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A nomenclature, which is used to group frames together.</span>
+
+<span class="sd">       :param name: The name of the nomenclature</span>
+<span class="sd">       :type name: str</span>
+
+<span class="sd">       :param description: The description of the nomenclature</span>
+<span class="sd">       :type description: str, optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">blank</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IdentifierType"><a class="viewcode-back" href="../../index.html#open_anafi.models.IdentifierType">[docs]</a><span class="k">class</span> <span class="nc">IdentifierType</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Stores the 3 different types of identifiers (SIRET, SIREN, FINESS)</span>
+
+<span class="sd">       :param name: The name of the identifier type</span>
+<span class="sd">       :type name: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="InstitutionType"><a class="viewcode-back" href="../../index.html#open_anafi.models.InstitutionType">[docs]</a><span class="k">class</span> <span class="nc">InstitutionType</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Represents a type of institution (Commune, EPHAD etc)</span>
+
+<span class="sd">       :param name: The name of this institution type</span>
+<span class="sd">       :type name: str</span>
+
+<span class="sd">       :param number: The identifier used to represent this institution type (different from the primary key in the database)</span>
+<span class="sd">       :type number: int</span>
+
+<span class="sd">       :param legal_status: Number representing the legal status</span>
+<span class="sd">       :type legal_status: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">255</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">number</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">()</span>
+    <span class="n">legal_status</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Frame"><a class="viewcode-back" href="../../index.html#open_anafi.models.Frame">[docs]</a><span class="k">class</span> <span class="nc">Frame</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A frame contains multiple indicators, as well as an output file, and is used to generate reports.</span>
+
+<span class="sd">       :param name: The name of the frame</span>
+<span class="sd">       :type name: str</span>
+
+<span class="sd">       :param indicators: The indicators linked to the frame</span>
+<span class="sd">       :type indicators: list, class:`open_anafi.models.Indicator`, optional</span>
+
+<span class="sd">       :param identifiers_type: The types of identifiers that the frame can be calculated on</span>
+<span class="sd">       :type identifiers_type: list, class:`open_anafi.models.IdentifierType`</span>
+
+<span class="sd">       :param insitutions_type: The institutions the frame can be calculated on</span>
+<span class="sd">       :type institutions_type: list, class:`open_anafi.models.InstitutionType`</span>
+
+<span class="sd">       :param model_name: The name of the excel file the frame outputs to</span>
+<span class="sd">       :type model_name: str</span>
+
+<span class="sd">       :param description: The description of the frame</span>
+<span class="sd">       :type description: str, optional</span>
+
+<span class="sd">       :param max_depth: The maximum depth among all the indicators linked to the frame</span>
+<span class="sd">       :type max_depth: int</span>
+<span class="sd">    </span>
+<span class="sd">       :param reports: The list of reports generated by this frame</span>
+<span class="sd">       :type reports: list, class:`open_anafi.models.Reports`, optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">unique</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">indicators</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span><span class="n">Indicator</span><span class="p">,</span> <span class="n">blank</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">related_name</span> <span class="o">=</span> <span class="s1">&#39;frames&#39;</span><span class="p">)</span>
+    <span class="n">nomenclature</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Nomenclature</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">on_delete</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span> <span class="n">related_name</span> <span class="o">=</span> <span class="s1">&#39;frames&#39;</span><span class="p">)</span>
+    <span class="n">identifiers_type</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span><span class="n">IdentifierType</span><span class="p">,</span> <span class="n">blank</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">related_name</span> <span class="o">=</span> <span class="s1">&#39;frames&#39;</span><span class="p">)</span>
+    <span class="n">institutions_type</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span><span class="n">InstitutionType</span><span class="p">,</span> <span class="n">blank</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">related_name</span> <span class="o">=</span> <span class="s1">&#39;frames&#39;</span><span class="p">)</span>
+    <span class="n">model_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> 
+    <span class="n">description</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">blank</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">max_depth</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">blank</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Variable"><a class="viewcode-back" href="../../index.html#open_anafi.models.Variable">[docs]</a><span class="k">class</span> <span class="nc">Variable</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A variable used inside of formulas. Represents a line of a compte</span>
+
+<span class="sd">       :param name: The full name of the variable (a concatenation of all the information to calculate it)</span>
+<span class="sd">       :type name: str</span>
+
+<span class="sd">       :param indicator_parameter: The indicator parameter the variable is linked to</span>
+<span class="sd">       :type indicator_parameter: class:`open_anafi.models.IndicatorParameter`</span>
+
+<span class="sd">       :param numero_compte: The identifier of the compte to extract the values from</span>
+<span class="sd">       :type numero_compte: str</span>
+
+<span class="sd">       :param type_solde: The type of operation (debit, crédit)</span>
+<span class="sd">       :type type_solde: str</span>
+
+<span class="sd">       :param solde: The solde of the account, stored in as a string to ensure proper decimal values</span>
+<span class="sd">       :type solde: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">indicator_parameter</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">IndicatorParameter</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">related_name</span> <span class="o">=</span> <span class="s1">&#39;parent_indicator&#39;</span><span class="p">,</span> <span class="n">on_delete</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
+    <span class="n">numero_compte</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">type_solde</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">solde</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Department"><a class="viewcode-back" href="../../index.html#open_anafi.models.Department">[docs]</a><span class="k">class</span> <span class="nc">Department</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The list of all the french departments</span>
+
+<span class="sd">       :param name: The department&#39;s name</span>
+<span class="sd">       :type name: str</span>
+
+<span class="sd">       :param number: The identifier of the department. Stored as a string because one of them contains a letter</span>
+<span class="sd">       :type number: str</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">number</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Report"><a class="viewcode-back" href="../../index.html#open_anafi.models.Report">[docs]</a><span class="k">class</span> <span class="nc">Report</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;All the reports generated</span>
+
+<span class="sd">    :param frame: The frame used to generate the report</span>
+<span class="sd">    :type frame: class:`open_anafi.models.Frame`</span>
+
+<span class="sd">    :param year_min: The lower bound of the range to calculate the report on</span>
+<span class="sd">    :type year_min: int</span>
+
+<span class="sd">    :param year_max: The upper bound of the range to calculate the report on</span>
+<span class="sd">    :type year_max: int</span>
+
+<span class="sd">    :param identifier: The identifier to generate the report on (can be a concat of multiple identifiers)</span>
+<span class="sd">    :type identifier: str</span>
+
+<span class="sd">    :param identifier_type: The type of the identifier </span>
+<span class="sd">    :type identifier_type: str</span>
+
+<span class="sd">    :param state: Arbitrary string to indicate the state of the report. (En cours, Terminé, En échec)</span>
+<span class="sd">    :type state: str</span>
+
+<span class="sd">    :param name: The name of the produced excel file</span>
+<span class="sd">    :type name: str</span>
+
+<span class="sd">    :param date: The creation date of the report</span>
+<span class="sd">    :type date: date</span>
+
+<span class="sd">    :param user: The user who created the report</span>
+<span class="sd">    :type user: class:`django.contrib.auth.models.User`</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">frame</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Frame</span><span class="p">,</span> <span class="n">on_delete</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">SET_NULL</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">related_name</span> <span class="o">=</span> <span class="s2">&quot;reports&quot;</span><span class="p">)</span>
+    <span class="n">year_min</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">year_max</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">identifier</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">identifier_type</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> 
+    <span class="n">state</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">400</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">date</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateField</span><span class="p">(</span><span class="n">auto_now</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">on_delete</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">SET_NULL</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">related_name</span> <span class="o">=</span> <span class="s2">&quot;reports&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TranslationTableEstablishmentType"><a class="viewcode-back" href="../../index.html#open_anafi.models.TranslationTableEstablishmentType">[docs]</a><span class="k">class</span> <span class="nc">TranslationTableEstablishmentType</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">type_budget</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="c1"># BP or BA</span>
+    <span class="n">letter</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">null</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="c1"># H, B, C, E, J, N, P, L, M A, G</span>
+    <span class="n">type_establishment</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">()</span> <span class="c1"># 1, 2, 3, 4 </span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">OpenAnafi 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Guillaume Lemaire, Arthur Valingot, Jim Bienvenu.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>

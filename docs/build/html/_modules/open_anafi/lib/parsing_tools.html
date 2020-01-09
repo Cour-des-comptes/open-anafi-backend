@@ -1,0 +1,422 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>open_anafi.lib.parsing_tools &#8212; OpenAnafi 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">OpenAnafi 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for open_anafi.lib.parsing_tools</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">openpyxl</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">django.db</span> <span class="k">import</span> <span class="n">IntegrityError</span>
+<span class="kn">from</span> <span class="nn">django.core.exceptions</span> <span class="k">import</span> <span class="n">ObjectDoesNotExist</span>
+<span class="kn">from</span> <span class="nn">open_anafi.models</span> <span class="k">import</span> <span class="n">Variable</span><span class="p">,</span> <span class="n">Indicator</span><span class="p">,</span> <span class="n">Frame</span><span class="p">,</span> <span class="n">Nomenclature</span><span class="p">,</span> <span class="n">IndicatorParameter</span><span class="p">,</span> <span class="n">InstitutionType</span><span class="p">,</span> <span class="n">IdentifierType</span><span class="p">,</span> <span class="n">User</span>
+<span class="kn">from</span> <span class="nn">open_anafi.serializers</span> <span class="k">import</span> <span class="n">VariableSerializer</span><span class="p">,</span> <span class="n">IndicatorSerializer</span><span class="p">,</span> <span class="n">FrameSerializer</span>
+<span class="kn">from</span> <span class="nn">.ply.parser_anafi</span> <span class="k">import</span> <span class="n">parseEquation</span>
+<span class="kn">from</span> <span class="nn">.ply.parsing_classes</span> <span class="k">import</span> <span class="n">Var</span><span class="p">,</span> <span class="n">Indic</span>
+<span class="kn">from</span> <span class="nn">.indicator_tools</span> <span class="k">import</span> <span class="n">IndicatorParameterTools</span><span class="p">,</span> <span class="n">IndicatorTools</span>
+<span class="kn">from</span> <span class="nn">.frame_tools</span> <span class="k">import</span> <span class="n">FrameTools</span>
+
+<span class="c1"># TODO : Remove once excel files are organized</span>
+<div class="viewcode-block" id="calculateDepth"><a class="viewcode-back" href="../../../index.html#open_anafi.lib.parsing_tools.calculateDepth">[docs]</a><span class="k">def</span> <span class="nf">calculateDepth</span><span class="p">(</span><span class="n">indicator_parameter</span><span class="p">,</span> <span class="n">parameters_to_calculate</span><span class="p">,</span> <span class="n">all_indicators</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A temporary recursive function that evaluates the depth of a list of indicators in an unorganized excel file</span>
+
+<span class="sd">	:param indicator_parameter: The current indicator parameter to evaluate</span>
+<span class="sd">	:type indicator_parameter: class:`open_anafi.models.IndicatorParameter`</span>
+
+<span class="sd">	:param parameters_to_calculate: The list of remaining indicator parameters to evaluate</span>
+<span class="sd">	:type parameters_to_calculate: dict</span>
+
+<span class="sd">	:param all_indicators: All the indicators present in the excel file</span>
+<span class="sd">	:type all_indicators: dict</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="n">indicator_parameter</span><span class="o">.</span><span class="n">depth</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">indicator_parameter</span><span class="o">.</span><span class="n">depth</span>
+	<span class="n">newDepth</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="k">for</span> <span class="n">indicator</span> <span class="ow">in</span> <span class="n">parameters_to_calculate</span><span class="p">[</span><span class="n">indicator_parameter</span><span class="p">]:</span>
+		<span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">all_indicators</span><span class="p">[</span><span class="n">indicator</span><span class="p">]:</span>
+			<span class="c1">#All the parameters</span>
+			<span class="n">depth</span> <span class="o">=</span> <span class="n">calculateDepth</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">parameters_to_calculate</span><span class="p">,</span> <span class="n">all_indicators</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">depth</span> <span class="o">&gt;</span> <span class="n">newDepth</span><span class="p">:</span>
+				<span class="n">newDepth</span> <span class="o">=</span> <span class="n">depth</span>
+	<span class="n">newDepth</span> <span class="o">+=</span> <span class="mi">1</span>
+	<span class="n">indicator_parameter</span><span class="o">.</span><span class="n">depth</span> <span class="o">=</span> <span class="n">newDepth</span>
+	<span class="n">indicator_parameter</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+	<span class="k">if</span> <span class="n">newDepth</span> <span class="o">&gt;</span> <span class="n">indicator_parameter</span><span class="o">.</span><span class="n">indicator</span><span class="o">.</span><span class="n">max_depth</span><span class="p">:</span>
+		<span class="n">indicator_parameter</span><span class="o">.</span><span class="n">indicator</span><span class="o">.</span><span class="n">max_depth</span> <span class="o">=</span> <span class="n">newDepth</span>
+		<span class="n">indicator_parameter</span><span class="o">.</span><span class="n">indicator</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+	<span class="k">return</span> <span class="n">newDepth</span></div>
+
+<span class="c1"># TODO : Move that in frame_tools</span>
+<div class="viewcode-block" id="getOrCreateFrame"><a class="viewcode-back" href="../../../index.html#open_anafi.lib.parsing_tools.getOrCreateFrame">[docs]</a><span class="k">def</span> <span class="nf">getOrCreateFrame</span><span class="p">(</span><span class="n">frame_name</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">frame_description</span><span class="p">,</span> <span class="n">nomenclature</span><span class="p">,</span> <span class="n">institution_types</span><span class="p">,</span> <span class="n">identifier_types</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Retrieves or create an open_anafi frame.</span>
+
+<span class="sd">	:param frame_name: The name of the frame</span>
+<span class="sd">	:type frame_name: str</span>
+
+<span class="sd">	:param model_name: The name of the excel file the frame outputs to</span>
+<span class="sd">	:type model_name: str</span>
+
+<span class="sd">	:param frame_description: The description of the frame</span>
+<span class="sd">	:type frame_description: str</span>
+
+<span class="sd">	:param nomenclature: The id of the nomenclature to attach the frame to</span>
+<span class="sd">	:type nomenclature: optional int</span>
+
+<span class="sd">	:param institution_types: The institutions the frame can be calculated on</span>
+<span class="sd">	:type institution_types: list of int</span>
+
+<span class="sd">	:param identifier_types: The types of identifiers that the frame can be calculated on</span>
+<span class="sd">	:type identifier_types: list of int</span>
+
+<span class="sd">	:return: The retrieved or created Frame</span>
+<span class="sd">	:rtype: class:`open_anafi.models.Frame`</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">frame</span> <span class="o">=</span> <span class="n">Frame</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">frame_name</span><span class="p">)</span>
+		<span class="n">frame</span><span class="o">.</span><span class="n">model_name</span> <span class="o">=</span> <span class="n">model_name</span> <span class="c1">#TODO Check if this is useful</span>
+
+	<span class="k">except</span> <span class="n">ObjectDoesNotExist</span><span class="p">:</span>
+		<span class="n">frameSer</span> <span class="o">=</span> <span class="n">FrameSerializer</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">frame_name</span><span class="p">,</span> <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">frame_description</span><span class="p">,</span> <span class="s1">&#39;model_name&#39;</span><span class="p">:</span> <span class="n">model_name</span><span class="p">})</span>
+		<span class="n">frameSer</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">raise_exception</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+		<span class="n">frameSer</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+		<span class="n">frame</span> <span class="o">=</span> <span class="n">Frame</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">frame_name</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">institution_type</span> <span class="ow">in</span> <span class="n">institution_types</span><span class="p">:</span>
+			<span class="n">frame</span><span class="o">.</span><span class="n">institutions_type</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">InstitutionType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">number</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">institution_type</span><span class="p">)))</span>
+		<span class="k">for</span> <span class="n">identifier_type</span> <span class="ow">in</span> <span class="n">identifier_types</span><span class="p">:</span>
+			<span class="n">frame</span><span class="o">.</span><span class="n">identifiers_type</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">IdentifierType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">identifier_type</span><span class="p">))</span>
+
+	<span class="k">if</span> <span class="n">nomenclature</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">frame</span><span class="o">.</span><span class="n">nomenclature</span> <span class="o">=</span> <span class="n">Nomenclature</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span> <span class="o">=</span> <span class="n">nomenclature</span><span class="p">)</span>
+			<span class="n">frame</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+		<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+	<span class="k">return</span> <span class="n">frame</span></div>
+
+<div class="viewcode-block" id="createVariable"><a class="viewcode-back" href="../../../index.html#open_anafi.lib.parsing_tools.createVariable">[docs]</a><span class="k">def</span> <span class="nf">createVariable</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">indicator_parameter</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Create an open_anafi variable object linked to an indicator parameter</span>
+
+<span class="sd">	:param variable: The variable to create</span>
+<span class="sd">	:type variable: class:`open_anafi.lib.ply.parsing_classes.Var`</span>
+
+<span class="sd">	:param indicator_parameter: The indicator parameter to link the variable to</span>
+<span class="sd">	:type indicator_parameter: class:`ope_anafi.models.IndicatorParameter`</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">variable_split_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;([a-zA-Z]*)([0-9]*)&#39;</span><span class="p">)</span>
+
+	<span class="n">split_variable</span> <span class="o">=</span> <span class="n">variable_split_regex</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">var</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">variable</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">numero_compte</span> <span class="o">=</span> <span class="n">split_variable</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">type_solde</span> <span class="o">=</span> <span class="n">variable</span><span class="o">.</span><span class="n">type_solde</span><span class="p">,</span> <span class="n">solde</span> <span class="o">=</span> <span class="n">split_variable</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">indicator_parameter</span> <span class="o">=</span> <span class="n">indicator_parameter</span><span class="p">)</span>
+	<span class="k">except</span> <span class="n">ObjectDoesNotExist</span><span class="p">:</span>
+		<span class="n">var</span> <span class="o">=</span> <span class="n">VariableSerializer</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+									<span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">variable</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+									<span class="s2">&quot;numero_compte&quot;</span><span class="p">:</span> <span class="n">split_variable</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+									<span class="s2">&quot;type_solde&quot;</span><span class="p">:</span> <span class="n">variable</span><span class="o">.</span><span class="n">type_solde</span><span class="p">,</span> 
+									<span class="s2">&quot;solde&quot;</span><span class="p">:</span> <span class="n">split_variable</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+									<span class="s2">&quot;indicator_parameter&quot;</span><span class="p">:</span> <span class="n">indicator_parameter</span><span class="o">.</span><span class="n">id</span>
+								<span class="p">})</span>
+		<span class="n">var</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">raise_exception</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+		<span class="n">var</span><span class="o">.</span><span class="n">save</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="extractIndicatorsAndVariables"><a class="viewcode-back" href="../../../index.html#open_anafi.lib.parsing_tools.extractIndicatorsAndVariables">[docs]</a><span class="k">def</span> <span class="nf">extractIndicatorsAndVariables</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">indicators</span><span class="p">,</span> <span class="n">indicator_parameter</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Recursive function that will create the Variables and retrieve the indicators from a parsed equation (a tuple)</span>
+
+<span class="sd">	:param tree: The node to a analyze</span>
+<span class="sd">	:type tree: tuple, Var, Indic, str, int</span>
+
+<span class="sd">	:param indicators: The array containing all the indicators present in the equation</span>
+<span class="sd">	:type indicators: list</span>
+
+<span class="sd">	:param indicator_parameter: The indicator parameter to link the variables to</span>
+<span class="sd">	:type indicator_parameter: class:`open_anafi.models.IndicatorParameter`</span>
+
+<span class="sd">	:return: A tuple of the equation that can be read by the report parser</span>
+<span class="sd">	:rtype: tuple, str, int</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">tuple</span><span class="p">:</span>
+		<span class="k">return</span> <span class="p">(</span><span class="n">tree</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">extractIndicatorsAndVariables</span><span class="p">(</span><span class="n">tree</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">indicators</span><span class="p">,</span> <span class="n">indicator_parameter</span><span class="p">),</span> <span class="n">extractIndicatorsAndVariables</span><span class="p">(</span><span class="n">tree</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">indicators</span><span class="p">,</span> <span class="n">indicator_parameter</span><span class="p">))</span>
+	<span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span> <span class="ow">is</span> <span class="n">Var</span><span class="p">:</span>
+		<span class="n">createVariable</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">indicator_parameter</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">tree</span><span class="o">.</span><span class="n">minus</span><span class="p">:</span>
+			<span class="k">return</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="n">tree</span><span class="o">.</span><span class="n">name</span>
+		<span class="k">return</span> <span class="n">tree</span><span class="o">.</span><span class="n">name</span>
+	<span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span> <span class="ow">is</span> <span class="n">Indic</span><span class="p">:</span>
+		<span class="n">indicators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+		<span class="n">return_value</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">name</span>
+
+		<span class="k">if</span> <span class="n">tree</span><span class="o">.</span><span class="n">offset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">return_value</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;@</span><span class="si">{tree.offset}</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">return_value</span>
+		<span class="k">if</span> <span class="n">tree</span><span class="o">.</span><span class="n">minus</span><span class="p">:</span>
+			<span class="n">return_value</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="n">return_value</span>
+		<span class="k">return</span> <span class="n">return_value</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">tree</span></div>
+			
+<span class="c1">#TODO Snake case parsedParameter</span>
+<div class="viewcode-block" id="createParameter"><a class="viewcode-back" href="../../../index.html#open_anafi.lib.parsing_tools.createParameter">[docs]</a><span class="k">def</span> <span class="nf">createParameter</span><span class="p">(</span><span class="n">parsedParameter</span><span class="p">,</span> <span class="n">formule</span><span class="p">,</span> <span class="n">indicator</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Creates an indicator parameter. Can be used while parsing an excel file containing multiple indicators.</span>
+<span class="sd">	In this case the &#39;parameters_to_calculate&#39; parameter has to be sent</span>
+
+<span class="sd">	:param parsedParameter: The tuple corresponding to a single parameter, parsed by the langage analyzer</span>
+<span class="sd">	:type parsedParameter: tuple</span>
+
+<span class="sd">	:param formule: The original equation (as a string typed by the user)</span>
+<span class="sd">	:type formule: str</span>
+
+<span class="sd">	:param indicator: The indicator to link the parameter to</span>
+<span class="sd">	:type indicator: class:`open_anafi.models.Indicator`</span>
+
+<span class="sd">	:param all_indicators: A dictionnary of all the indicators present in the excel file (This parameter is used to determine if we are working on one or multiple indicators)</span>
+<span class="sd">	:type all_indicators: optional dict</span>
+
+<span class="sd">	:param parameters_to_calculate: A dictionnary of all the indicator parameters whose depth cannot be calculated right now (depth &gt; 1)</span>
+<span class="sd">	:type parameters_to_calculate: optional dict</span>
+
+<span class="sd">	:return: The created indicator parameter</span>
+<span class="sd">	:rtype: class:`open_anafi.models.IndicatorParameter`</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">establishment_string_regexp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[HBCEJNPLMAG]$&#39;</span><span class="p">)</span>
+	<span class="n">establishment_number_regexp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[0-9]</span><span class="si">{3}</span><span class="s1">$&#39;</span><span class="p">)</span>
+
+	<span class="n">all_indicators</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;all_indicators&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+	<span class="n">parameters_to_calculate</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parameters_to_calculate&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+	<span class="n">cal</span> <span class="o">=</span> <span class="n">parsedParameter</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;CAL&#39;</span><span class="p">)</span>
+	<span class="n">type_budget</span> <span class="o">=</span> <span class="n">parsedParameter</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;typeBudget&#39;</span><span class="p">)</span>
+	<span class="n">type_etablissement</span> <span class="o">=</span> <span class="n">parsedParameter</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;TE&#39;</span><span class="p">)</span>
+	<span class="n">tree</span> <span class="o">=</span> <span class="n">parsedParameter</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;tree&#39;</span><span class="p">)</span>
+	<span class="n">year_min</span> <span class="o">=</span> <span class="n">parsedParameter</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;exmin&#39;</span><span class="p">)</span>
+	<span class="n">year_max</span> <span class="o">=</span> <span class="n">parsedParameter</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;exmax&#39;</span><span class="p">)</span>
+	<span class="n">indicators</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="n">indicator_parameter</span> <span class="o">=</span> <span class="n">IndicatorParameter</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+
+	<span class="n">parsedTree</span> <span class="o">=</span> <span class="n">extractIndicatorsAndVariables</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">indicators</span><span class="p">,</span> <span class="n">indicator_parameter</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">all_indicators</span><span class="p">:</span>
+		<span class="n">all_indicators</span><span class="p">[</span><span class="n">indicator</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">indicator_parameter</span><span class="p">)</span>
+
+	<span class="n">indicator_parameter</span><span class="o">.</span><span class="n">indicator</span> <span class="o">=</span> <span class="n">indicator</span>
+	<span class="n">indicator_parameter</span><span class="o">.</span><span class="n">readable_equation</span> <span class="o">=</span> <span class="n">parsedTree</span>
+	<span class="n">indicator_parameter</span><span class="o">.</span><span class="n">year_min</span> <span class="o">=</span> <span class="n">year_min</span>
+	<span class="n">indicator_parameter</span><span class="o">.</span><span class="n">year_max</span> <span class="o">=</span> <span class="n">year_max</span>
+	<span class="n">indicator_parameter</span><span class="o">.</span><span class="n">original_equation</span> <span class="o">=</span> <span class="n">formule</span>
+	<span class="n">indicator_parameter</span><span class="o">.</span><span class="n">displaying</span> <span class="o">=</span> <span class="n">cal</span>
+	<span class="n">indicator_parameter</span><span class="o">.</span><span class="n">type_budget</span> <span class="o">=</span> <span class="n">type_budget</span>
+
+	<span class="k">if</span> <span class="n">type_etablissement</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">establishment_string</span> <span class="o">=</span> <span class="n">establishment_number_regexp</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">type_etablissement</span><span class="p">)</span>
+		<span class="n">establishment_number</span> <span class="o">=</span> <span class="n">establishment_number_regexp</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">type_etablissement</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">establishment_string</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">indicator_parameter</span><span class="o">.</span><span class="n">establishment_string</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">establishment_string</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">establishment_number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">indicator_parameter</span><span class="o">.</span><span class="n">establishment_number</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">establishment_number</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">indicators</span><span class="p">:</span>
+		<span class="n">indicator_parameter</span><span class="o">.</span><span class="n">depth</span> <span class="o">=</span> <span class="mi">1</span>
+		<span class="n">indicator_parameter</span><span class="o">.</span><span class="n">indicator</span><span class="o">.</span><span class="n">max_depth</span> <span class="o">=</span> <span class="mi">1</span>
+		<span class="n">indicator_parameter</span><span class="o">.</span><span class="n">indicator</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">indicator_parameter</span><span class="o">.</span><span class="n">depth</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">if</span> <span class="n">parameters_to_calculate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">parameters_to_calculate</span><span class="p">[</span><span class="n">indicator_parameter</span><span class="p">]</span> <span class="o">=</span> <span class="n">indicators</span>
+
+	<span class="n">indicator_parameter</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+	<span class="k">return</span> <span class="n">indicator_parameter</span></div>
+
+<span class="k">def</span> <span class="nf">parseIndicator</span><span class="p">(</span><span class="n">indicator_name</span><span class="p">,</span> <span class="n">indicator_equation</span><span class="p">,</span> <span class="n">indicator_description</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+	<span class="n">split_formula_by_exercice</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\[RE-MIN:[\s\d#]+\]|\[RE-MAX:[\s\d#]+\]|(\[TB:[\sA-Z0-9]+\])|(\[TE:[\sA-Z0-9]+\])&#39;</span><span class="p">)</span>
+	<span class="n">parameter_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^\[[A-Z:\s0-9#\-]+\]$&#39;</span><span class="p">)</span>
+
+	<span class="n">all_indicators</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;all_indicators&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+	<span class="n">parameters_to_calculate</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parameters_to_calculate&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+	<span class="n">frame</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;frame&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+	<span class="n">user</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+	<span class="n">public</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;public&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">indic</span> <span class="o">=</span> <span class="n">Indicator</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">indicator_name</span><span class="p">)</span>
+		<span class="n">indic</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+	<span class="k">except</span> <span class="n">ObjectDoesNotExist</span><span class="p">:</span>
+		<span class="k">pass</span>
+	
+	<span class="n">indic</span> <span class="o">=</span> <span class="n">IndicatorSerializer</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">indicator_name</span><span class="p">,</span>
+									    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">indicator_description</span> <span class="k">if</span> <span class="n">indicator_description</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+										<span class="s2">&quot;max_depth&quot;</span><span class="p">:</span> <span class="mi">0</span>
+								<span class="p">})</span>
+	<span class="n">indic</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">raise_exception</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">indic</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+	<span class="k">except</span> <span class="n">IntegrityError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>		
+
+	<span class="n">indic</span> <span class="o">=</span> <span class="n">Indicator</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">indicator_name</span><span class="p">)</span>
+	<span class="n">indic</span><span class="o">.</span><span class="n">public</span> <span class="o">=</span> <span class="n">public</span>
+	<span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">indic</span><span class="o">.</span><span class="n">last_modified_by</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">user</span><span class="p">)</span>
+	<span class="n">indic</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+	<span class="k">if</span> <span class="n">frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">frame</span><span class="o">.</span><span class="n">indicators</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">indic</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">all_indicators</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">all_indicators</span><span class="p">[</span><span class="n">indic</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="c1">#On split la formule en fonction des exercices de gestion</span>
+	<span class="n">indicator_to_parse</span> <span class="o">=</span> <span class="n">indicator_equation</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">parsed_indicator</span> <span class="o">=</span> <span class="n">parseEquation</span><span class="p">(</span><span class="n">indicator_to_parse</span><span class="p">)</span>
+	<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Erreur au niveau de l&#39;indicateur {indicator_name.strip()} - {str(e)}&quot;</span><span class="p">)</span>
+	<span class="n">original_equations</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">temp</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+	<span class="n">split_indicator_to_parse</span> <span class="o">=</span> <span class="n">split_formula_by_exercice</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">indicator_to_parse</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_indicator_to_parse</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+		<span class="n">original_equations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">split_indicator_to_parse</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">split_indicator_to_parse</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">item</span> <span class="ow">is</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">temp</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+					<span class="n">original_equations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+					<span class="n">temp</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+				<span class="k">continue</span>
+			<span class="n">temp</span> <span class="o">+=</span> <span class="n">item</span>
+
+	<span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">parsed_indicator</span><span class="p">)):</span>
+		<span class="n">indicator_parameter</span> <span class="o">=</span> <span class="n">createParameter</span><span class="p">(</span><span class="n">param</span><span class="p">,</span>
+						<span class="n">original_equations</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+						<span class="n">indic</span><span class="p">,</span>
+						<span class="n">parameters_to_calculate</span><span class="o">=</span><span class="n">parameters_to_calculate</span><span class="p">,</span>
+						<span class="n">all_indicators</span><span class="o">=</span><span class="n">all_indicators</span><span class="p">)</span>
+
+		<span class="c1">#This is for the case where you add a single indicator/parameter</span>
+		<span class="k">if</span> <span class="n">parameters_to_calculate</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">all_indicators</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="n">IndicatorParameterTools</span><span class="o">.</span><span class="n">calculateDepth</span><span class="p">(</span><span class="n">indicator_parameter</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="n">parameters_to_calculate</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">all_indicators</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+		<span class="n">IndicatorTools</span><span class="o">.</span><span class="n">calculateMaxDepth</span><span class="p">(</span><span class="n">indic</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">fr</span> <span class="ow">in</span> <span class="n">indic</span><span class="o">.</span><span class="n">frames</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+			<span class="n">FrameTools</span><span class="o">.</span><span class="n">calculateDepth</span><span class="p">(</span><span class="n">fr</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">parseFile3</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">institution_types</span><span class="p">,</span> <span class="n">identifier_types</span><span class="p">,</span> <span class="n">frame_name</span><span class="p">,</span> <span class="n">frame_description</span><span class="p">,</span> <span class="n">nomenclature</span><span class="p">,</span> <span class="n">model_name</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">user</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+	<span class="n">parameters_to_calculate</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="n">all_indicators</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="n">split_formula_by_exercice</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\[RE-MIN:[\s\d#]+\]|\[RE-MAX:[\s\d#]+\]|(\[TB:[\sA-Z0-9]+\])|(\[CAL:[\sA-Z0-9]+\])|(\[TE:[\sA-Z0-9]+\])&#39;</span><span class="p">)</span>
+	<span class="n">parameter_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^\[[A-Z:\s0-9#\-]+\]$&#39;</span><span class="p">)</span>
+
+	<span class="c1"># On récupère la frame</span>
+	<span class="n">frame</span> <span class="o">=</span> <span class="n">getOrCreateFrame</span><span class="p">(</span><span class="n">frame_name</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">frame_description</span><span class="p">,</span> <span class="n">nomenclature</span><span class="p">,</span> <span class="n">institution_types</span><span class="p">,</span> <span class="n">identifier_types</span><span class="p">)</span>
+
+	<span class="n">wb</span> <span class="o">=</span> <span class="n">openpyxl</span><span class="o">.</span><span class="n">load_workbook</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+	<span class="n">ws</span> <span class="o">=</span> <span class="n">wb</span><span class="p">[</span><span class="n">wb</span><span class="o">.</span><span class="n">sheetnames</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+	<span class="n">maximum_depth</span> <span class="o">=</span> <span class="mi">1</span>
+
+	<span class="c1">#On parcourt le fichier excel ligne par ligne</span>
+	<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">ws</span><span class="o">.</span><span class="n">iter_rows</span><span class="p">(</span><span class="n">min_row</span> <span class="o">=</span> <span class="mi">2</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+			<span class="n">description</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+		<span class="n">parseIndicator</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+					   <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+					   <span class="n">description</span><span class="p">,</span>
+					   <span class="n">public</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+					   <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">,</span>
+					   <span class="n">all_indicators</span><span class="o">=</span><span class="n">all_indicators</span><span class="p">,</span>
+					   <span class="n">parameters_to_calculate</span><span class="o">=</span><span class="n">parameters_to_calculate</span><span class="p">,</span>
+					   <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">)</span>
+
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;depth calculation&quot;</span><span class="p">)</span>
+	<span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">parameters_to_calculate</span><span class="p">:</span>
+		<span class="n">current_depth</span> <span class="o">=</span> <span class="n">calculateDepth</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">parameters_to_calculate</span><span class="p">,</span> <span class="n">all_indicators</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">current_depth</span> <span class="o">&gt;</span> <span class="n">maximum_depth</span><span class="p">:</span>
+			<span class="n">maximum_depth</span> <span class="o">=</span> <span class="n">current_depth</span>
+
+	<span class="n">frame</span><span class="o">.</span><span class="n">max_depth</span> <span class="o">=</span> <span class="n">maximum_depth</span>
+	<span class="n">frame</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">OpenAnafi 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Guillaume Lemaire, Arthur Valingot, Jim Bienvenu.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>

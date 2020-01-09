@@ -1,0 +1,18 @@
+# ccomptes/settings.py
+local_config.ini
+__pycache__/
+migrations/
+parser.out
+parsetab.py
+templates/
+!templates/pseudoparam_template.xlsx
+reports/
+graph_renders/
+*.pyc
+db.sqlite3
+package.box
+.idea/
+.vagrant/
+/3.8
+/package-21102019.box
+venv/

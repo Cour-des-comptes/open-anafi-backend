@@ -1,0 +1,10 @@
+INSERT INTO public.nature_juridique (code_nat_jur,libelle_nature,creat_d,modif_d) VALUES ('1','1 - Collectivités territoriales','2019-06-11 11:17:58.390',NULL);
+INSERT INTO public.nature_juridique (code_nat_jur,libelle_nature,creat_d,modif_d) VALUES ('2','2 - Groupements intercommunaux','2019-06-11 11:17:58.393',NULL);
+INSERT INTO public.nature_juridique (code_nat_jur,libelle_nature,creat_d,modif_d) VALUES ('3','3 - Etablissements publics locaux (EPL)','2019-06-11 11:17:58.394',NULL);
+INSERT INTO public.nature_juridique (code_nat_jur,libelle_nature,creat_d,modif_d) VALUES ('4','4 - Etablissements publics de santé (EPS) - Nomenclature M21','2019-06-11 11:17:58.395',NULL);
+INSERT INTO public.nature_juridique (code_nat_jur,libelle_nature,creat_d,modif_d) VALUES ('5','5 - Etablissements sociaux et médico-sociaux (EPSMS) - Nomenclature M22','2019-06-11 11:17:58.395',NULL);
+INSERT INTO public.nature_juridique (code_nat_jur,libelle_nature,creat_d,modif_d) VALUES ('6','6 - Offices Publics de l''Habitat (OPH) - Nomenclature M31','2019-06-11 11:17:58.396',NULL);
+INSERT INTO public.nature_juridique (code_nat_jur,libelle_nature,creat_d,modif_d) VALUES ('0','0 - INCONNU !!!','2019-06-11 11:17:58.396',NULL);
+INSERT INTO public.nature_juridique (code_nat_jur,libelle_nature,creat_d,modif_d) VALUES ('7','7 - Collectivités à statut particulier','2019-06-11 11:17:58.403',NULL);
+INSERT INTO public.nature_juridique (code_nat_jur,libelle_nature,creat_d,modif_d) VALUES ('8','8 - Budgets gérés par une agence comptable','2019-06-11 11:17:58.404',NULL);
+;

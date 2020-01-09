@@ -1,0 +1,3 @@
+#!/bin/sh
+
+service rabbitmq-server start && python manage.py makemigrations ; python manage.py migrate ; python manage.py loaddata open_anafi ; python manage.py runserver 0.0.0.0:8000 & rabbitmqctl add_user open_anafi OAdevRtW! ; rabbitmqctl add_vhost openanafi_vhost ; rabbitmqctl set_user_tags open_anafi administrator ; rabbitmqctl set_permissions -p openanafi_vhost open_anafi '.*' '.*' '.*' ; celery -A ccomptes worker -l debug -c 1

@@ -1,0 +1,34 @@
+; local_config.ini
+[DEFAULT]
+SECRET_KEY =
+MEDIA_ROOT = /tmp
+STATIC_URL = /static/
+TEMPLATES_ROOT = /open_anafi/templates/
+
+[LDAP]
+LDAP_SERVER =
+LDAP_USER =
+LDAP_DOMAIN =
+LDAP_PASSWORD =
+LDAP_DC =
+AUTH_LDAP_REQUIRE_GROUP =
+
+[JWT]
+JWT_KEY = TEMPKEY
+
+[CELERY]
+CELERY_BROKER_URL = # amqp://open_anafi:test@localhost:5672/openanafi_vhost
+CELERY_BROKER_HEARTBEAT = None
+CELERY_RESULT_BACKEND = django-db
+
+[DATABASE_DEFAULT]
+ENGINE = django.db.backends.sqlite3
+NAME = /home/vagrant/db.sqlite3
+
+[DATABASE_CCI]
+ENGINE = # django.db.backends.postgresql_psycopg2
+NAME = #
+USER = #
+PASSWORD = #
+HOST = #
+PORT = # 5432

@@ -1,0 +1,1007 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>OpenAnafi’s Documentation &#8212; OpenAnafi 1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">OpenAnafi 1.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="openanafi-s-documentation">
+<h1>OpenAnafi’s Documentation<a class="headerlink" href="#openanafi-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="section" id="models">
+<h2>Models<a class="headerlink" href="#models" title="Permalink to this headline">¶</a></h2>
+<p>Documentation on the two data models : Open_anafi and the dynamic database requester</p>
+<div class="section" id="module-open_anafi.models">
+<span id="openanafi"></span><h3>OpenAnafi<a class="headerlink" href="#module-open_anafi.models" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="open_anafi.models.Department">
+<em class="property">class </em><code class="sig-prename descclassname">open_anafi.models.</code><code class="sig-name descname">Department</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/models.html#Department"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.models.Department" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>The list of all the french departments</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The department’s name</p></li>
+<li><p><strong>number</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The identifier of the department. Stored as a string because one of them contains a letter</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="open_anafi.models.Department.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#open_anafi.models.Department.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="open_anafi.models.Department.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#open_anafi.models.Department.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="open_anafi.models.Frame">
+<em class="property">class </em><code class="sig-prename descclassname">open_anafi.models.</code><code class="sig-name descname">Frame</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/models.html#Frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.models.Frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>A frame contains multiple indicators, as well as an output file, and is used to generate reports.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the frame</p></li>
+<li><p><strong>indicators</strong> (list, class:<cite>open_anafi.models.Indicator</cite>, optional) – The indicators linked to the frame</p></li>
+<li><p><strong>identifiers_type</strong> (list, class:<cite>open_anafi.models.IdentifierType</cite>) – The types of identifiers that the frame can be calculated on</p></li>
+<li><p><strong>insitutions_type</strong> – The institutions the frame can be calculated on</p></li>
+<li><p><strong>model_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the excel file the frame outputs to</p></li>
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – The description of the frame</p></li>
+<li><p><strong>max_depth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The maximum depth among all the indicators linked to the frame</p></li>
+<li><p><strong>reports</strong> (list, class:<cite>open_anafi.models.Reports</cite>, optional) – The list of reports generated by this frame</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="open_anafi.models.Frame.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#open_anafi.models.Frame.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="open_anafi.models.Frame.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#open_anafi.models.Frame.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="open_anafi.models.IdentifierType">
+<em class="property">class </em><code class="sig-prename descclassname">open_anafi.models.</code><code class="sig-name descname">IdentifierType</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/models.html#IdentifierType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.models.IdentifierType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>Stores the 3 different types of identifiers (SIRET, SIREN, FINESS)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the identifier type</p>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="open_anafi.models.IdentifierType.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#open_anafi.models.IdentifierType.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="open_anafi.models.IdentifierType.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#open_anafi.models.IdentifierType.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="open_anafi.models.Indicator">
+<em class="property">class </em><code class="sig-prename descclassname">open_anafi.models.</code><code class="sig-name descname">Indicator</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/models.html#Indicator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.models.Indicator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>This Table represents an indicator, who can store multiple parameters based on years / budgets, and can be linked to multiple frames.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the indicator</p></li>
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The description of the indicator</p></li>
+<li><p><strong>max_depth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The maximum depth among all the parameters</p></li>
+<li><p><strong>public</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Indicates if the indicator is visible to other users</p></li>
+<li><p><strong>last_modified_by</strong> (class:<cite>django.contrib.auth.models.User</cite>) – The user who last modified this indicator</p></li>
+<li><p><strong>frames</strong> (list, class:<cite>open_anafi.models.Frame</cite>, optional) – The frames the indicator is associated to</p></li>
+<li><p><strong>parameters</strong> (list, class:<cite>open_anafi.models.IndicatorParameter</cite>, optional) – The parameters linked to this indicator</p></li>
+<li><p><strong>libelles</strong> (list, class:<cite>open_anafi.models.IndicatorLibelle</cite>, optional) – The list of libelles linked to an indicator:</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="open_anafi.models.Indicator.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#open_anafi.models.Indicator.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="open_anafi.models.Indicator.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#open_anafi.models.Indicator.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="open_anafi.models.IndicatorLibelle">
+<em class="property">class </em><code class="sig-prename descclassname">open_anafi.models.</code><code class="sig-name descname">IndicatorLibelle</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/models.html#IndicatorLibelle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.models.IndicatorLibelle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>An indicator can have multiple aliases, for better understanding of its purpose</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>libelle</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The libelle</p></li>
+<li><p><strong>indicator</strong> (class:<cite>open_anafi.models.Indicator</cite>) – The indicator it describes</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="open_anafi.models.IndicatorLibelle.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#open_anafi.models.IndicatorLibelle.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="open_anafi.models.IndicatorLibelle.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#open_anafi.models.IndicatorLibelle.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="open_anafi.models.IndicatorParameter">
+<em class="property">class </em><code class="sig-prename descclassname">open_anafi.models.</code><code class="sig-name descname">IndicatorParameter</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/models.html#IndicatorParameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.models.IndicatorParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>An indicator parameter, containing a formula. It is linked to a single indicator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>indicator</strong> (class:<cite>open_anafi.model.Indicator</cite>) – The indicator this parameter belongs to</p></li>
+<li><p><strong>year_min</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The minimum year for this parameter to apply</p></li>
+<li><p><strong>year_max</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The maximum year for thisparameter to apply</p></li>
+<li><p><strong>readable_equation</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)"><em>tuple</em></a>) – The equation in a python readable way based on tuples</p></li>
+<li><p><strong>displaying</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Stores parameters related to calculating this parameter. For example, absolute value</p></li>
+<li><p><strong>institution_type_number</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The identifier of the institution this parameter is valid on</p></li>
+<li><p><strong>institution_type_string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The label of the institution this parameter is valid on</p></li>
+<li><p><strong>type_budget</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Specifies the way we calculate the indicator</p></li>
+<li><p><strong>original_equation</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The original equation for this parameter, in a human readable way</p></li>
+<li><p><strong>depth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – How many indicators have to be calculated before this one can</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="open_anafi.models.IndicatorParameter.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#open_anafi.models.IndicatorParameter.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="open_anafi.models.IndicatorParameter.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#open_anafi.models.IndicatorParameter.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="open_anafi.models.InstitutionType">
+<em class="property">class </em><code class="sig-prename descclassname">open_anafi.models.</code><code class="sig-name descname">InstitutionType</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/models.html#InstitutionType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.models.InstitutionType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>Represents a type of institution (Commune, EPHAD etc)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of this institution type</p></li>
+<li><p><strong>number</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The identifier used to represent this institution type (different from the primary key in the database)</p></li>
+<li><p><strong>legal_status</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Number representing the legal status</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="open_anafi.models.InstitutionType.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#open_anafi.models.InstitutionType.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="open_anafi.models.InstitutionType.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#open_anafi.models.InstitutionType.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="open_anafi.models.Nomenclature">
+<em class="property">class </em><code class="sig-prename descclassname">open_anafi.models.</code><code class="sig-name descname">Nomenclature</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/models.html#Nomenclature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.models.Nomenclature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>A nomenclature, which is used to group frames together.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the nomenclature</p></li>
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><em>optional</em>) – The description of the nomenclature</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="open_anafi.models.Nomenclature.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#open_anafi.models.Nomenclature.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="open_anafi.models.Nomenclature.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#open_anafi.models.Nomenclature.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="open_anafi.models.Report">
+<em class="property">class </em><code class="sig-prename descclassname">open_anafi.models.</code><code class="sig-name descname">Report</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/models.html#Report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.models.Report" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>All the reports generated</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame</strong> (class:<cite>open_anafi.models.Frame</cite>) – The frame used to generate the report</p></li>
+<li><p><strong>year_min</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The lower bound of the range to calculate the report on</p></li>
+<li><p><strong>year_max</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The upper bound of the range to calculate the report on</p></li>
+<li><p><strong>identifier</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The identifier to generate the report on (can be a concat of multiple identifiers)</p></li>
+<li><p><strong>identifier_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The type of the identifier</p></li>
+<li><p><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Arbitrary string to indicate the state of the report. (En cours, Terminé, En échec)</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the produced excel file</p></li>
+<li><p><strong>date</strong> (<em>date</em>) – The creation date of the report</p></li>
+<li><p><strong>user</strong> (class:<cite>django.contrib.auth.models.User</cite>) – The user who created the report</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="open_anafi.models.Report.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#open_anafi.models.Report.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="open_anafi.models.Report.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#open_anafi.models.Report.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="open_anafi.models.TranslationTableEstablishmentType">
+<em class="property">class </em><code class="sig-prename descclassname">open_anafi.models.</code><code class="sig-name descname">TranslationTableEstablishmentType</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">type_budget</em>, <em class="sig-param">letter</em>, <em class="sig-param">type_establishment</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/models.html#TranslationTableEstablishmentType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.models.TranslationTableEstablishmentType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<dl class="exception">
+<dt id="open_anafi.models.TranslationTableEstablishmentType.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#open_anafi.models.TranslationTableEstablishmentType.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="open_anafi.models.TranslationTableEstablishmentType.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#open_anafi.models.TranslationTableEstablishmentType.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="open_anafi.models.Variable">
+<em class="property">class </em><code class="sig-prename descclassname">open_anafi.models.</code><code class="sig-name descname">Variable</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/models.html#Variable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.models.Variable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>A variable used inside of formulas. Represents a line of a compte</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The full name of the variable (a concatenation of all the information to calculate it)</p></li>
+<li><p><strong>indicator_parameter</strong> (class:<cite>open_anafi.models.IndicatorParameter</cite>) – The indicator parameter the variable is linked to</p></li>
+<li><p><strong>numero_compte</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The identifier of the compte to extract the values from</p></li>
+<li><p><strong>type_solde</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The type of operation (debit, crédit)</p></li>
+<li><p><strong>solde</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The solde of the account, stored in as a string to ensure proper decimal values</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="open_anafi.models.Variable.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#open_anafi.models.Variable.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="open_anafi.models.Variable.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#open_anafi.models.Variable.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-database.models">
+<span id="requester"></span><h3>Requester<a class="headerlink" href="#module-database.models" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="database.models.Alias">
+<em class="property">class </em><code class="sig-prename descclassname">database.models.</code><code class="sig-name descname">Alias</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/database/models.html#Alias"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#database.models.Alias" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>An alias is attached to a column, and can have predefined parameters in a select (substring, sum etc).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>alias</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The label of the alias</p></li>
+<li><p><strong>folder</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – This can be used in a frontend to organize the aliases in sections.</p></li>
+<li><p><strong>column</strong> (class:<cite>database.models.Column</cite>) – The column this alias is linked to</p></li>
+<li><p><strong>option</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – An option that will be applied when selecting this alias in a request (substring, sum, concat etc)</p></li>
+<li><p><strong>selects</strong> (list of class:<cite>database.models.Select</cite>) – All the selections that use this alias</p></li>
+<li><p><strong>conditions</strong> (list of class:<cite>database.models.Condition</cite>) – All the conditions using this alias</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="database.models.Alias.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#database.models.Alias.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="database.models.Alias.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#database.models.Alias.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="database.models.Column">
+<em class="property">class </em><code class="sig-prename descclassname">database.models.</code><code class="sig-name descname">Column</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/database/models.html#Column"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#database.models.Column" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>Represents column</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the column</p></li>
+<li><p><strong>data_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The type of this column registered in the database</p></li>
+<li><p><strong>table</strong> (class:<cite>database.models.Table</cite>) – The table this column belongs to</p></li>
+<li><p><strong>aliases</strong> (list of class:<cite>database.models.Alias</cite>) – The list of all the aliases given to the column</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="database.models.Column.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#database.models.Column.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="database.models.Column.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#database.models.Column.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="database.models.Condition">
+<em class="property">class </em><code class="sig-prename descclassname">database.models.</code><code class="sig-name descname">Condition</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/database/models.html#Condition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#database.models.Condition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>A condition applied to a request</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>column</strong> (class:<cite>database.models.Column</cite>) – The column to apply the condition on</p></li>
+<li><p><strong>request</strong> (class:<cite>database.models.Request</cite>) – The request this condition belongs to</p></li>
+<li><p><strong>operator</strong> – The operator of the condition (IN, =, &lt;=, &lt; etc)</p></li>
+<li><p><strong>data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The condition’s data (ex: IN (values) or = x)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="database.models.Condition.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#database.models.Condition.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="database.models.Condition.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#database.models.Condition.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="database.models.Galaxy">
+<em class="property">class </em><code class="sig-prename descclassname">database.models.</code><code class="sig-name descname">Galaxy</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/database/models.html#Galaxy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#database.models.Galaxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>Contains all the relations between the tables (Mainly joins and predefined fields)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the galaxy</p></li>
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The description of the galaxy</p></li>
+<li><p><strong>requests</strong> (list of class:<cite>database.models.Request</cite>) – All the requests that use this galaxy</p></li>
+<li><p><strong>joins</strong> (<em>list of class`database.models.Join`</em>) – The joins to apply when loading a request of this galaxy</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="database.models.Galaxy.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#database.models.Galaxy.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="database.models.Galaxy.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#database.models.Galaxy.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="database.models.Group_by">
+<em class="property">class </em><code class="sig-prename descclassname">database.models.</code><code class="sig-name descname">Group_by</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">column</em>, <em class="sig-param">galaxy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/database/models.html#Group_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#database.models.Group_by" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<dl class="exception">
+<dt id="database.models.Group_by.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#database.models.Group_by.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="database.models.Group_by.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#database.models.Group_by.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="database.models.Join">
+<em class="property">class </em><code class="sig-prename descclassname">database.models.</code><code class="sig-name descname">Join</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/database/models.html#Join"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#database.models.Join" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>A Join relation between two columns</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>column1</strong> (class:<cite>database.models.Column</cite>) – The first column</p></li>
+<li><p><strong>column2</strong> (class:<cite>database.models.Column</cite>) – The second column</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="database.models.Join.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#database.models.Join.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="database.models.Join.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#database.models.Join.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="database.models.Request">
+<em class="property">class </em><code class="sig-prename descclassname">database.models.</code><code class="sig-name descname">Request</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/database/models.html#Request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#database.models.Request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>A request that can be executed or saved and loaded by a user</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the request</p></li>
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The description of the request</p></li>
+<li><p><strong>user</strong> (class:<cite>django.contrib.auth.models.User</cite>) – The user this request belongs to</p></li>
+<li><p><strong>galaxy</strong> (class:<cite>database.models.Galaxy</cite>) – The galaxy this requst belongs to</p></li>
+<li><p><strong>conditions_edit</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – A shortened version of the condition string in the form : <em>condition_id</em> AND/OR <em>condition_id</em> etc…</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="database.models.Request.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#database.models.Request.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="database.models.Request.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#database.models.Request.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="database.models.Select">
+<em class="property">class </em><code class="sig-prename descclassname">database.models.</code><code class="sig-name descname">Select</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/database/models.html#Select"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#database.models.Select" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>A selection in a request</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>column</strong> (class:<cite>database.models.Alias</cite>) – The selected column (through an alias)</p></li>
+<li><p><strong>request</strong> (class:<cite>database.models.Request</cite>) – The request this selection belongs to</p></li>
+<li><p><strong>option</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Extra options during selection (SUM, SUBSTRING etc)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="database.models.Select.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#database.models.Select.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="database.models.Select.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#database.models.Select.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="database.models.Table">
+<em class="property">class </em><code class="sig-prename descclassname">database.models.</code><code class="sig-name descname">Table</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/database/models.html#Table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#database.models.Table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>Represents a database table</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the table</p></li>
+<li><p><strong>columns</strong> (list of class:<cite>database.models.Column</cite>) – The columns of the table</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="exception">
+<dt id="database.models.Table.DoesNotExist">
+<em class="property">exception </em><code class="sig-name descname">DoesNotExist</code><a class="headerlink" href="#database.models.Table.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="database.models.Table.MultipleObjectsReturned">
+<em class="property">exception </em><code class="sig-name descname">MultipleObjectsReturned</code><a class="headerlink" href="#database.models.Table.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="controllers">
+<h2>Controllers<a class="headerlink" href="#controllers" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="the-indicatortools-class">
+<h3>The <code class="docutils literal notranslate"><span class="pre">IndicatorTools</span></code> class<a class="headerlink" href="#the-indicatortools-class" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="open_anafi.lib.IndicatorTools">
+<em class="property">class </em><code class="sig-prename descclassname">open_anafi.lib.</code><code class="sig-name descname">IndicatorTools</code><a class="reference internal" href="_modules/open_anafi/lib/indicator_tools.html#IndicatorTools"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.IndicatorTools" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="open_anafi.lib.IndicatorTools.calculateMaxDepth">
+<em class="property">static </em><code class="sig-name descname">calculateMaxDepth</code><span class="sig-paren">(</span><em class="sig-param">indicator</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/lib/indicator_tools.html#IndicatorTools.calculateMaxDepth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.IndicatorTools.calculateMaxDepth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the depth of an indicator (the max depth of all its parameters)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>indicator</strong> (class:<cite>open_anafi.models.Indicator</cite>) – The indicator to evaluate</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="open_anafi.lib.IndicatorTools.updateDepth">
+<em class="property">static </em><code class="sig-name descname">updateDepth</code><span class="sig-paren">(</span><em class="sig-param">indicator</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/lib/indicator_tools.html#IndicatorTools.updateDepth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.IndicatorTools.updateDepth" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Updates the depth of an indicator after an update.</dt><dd><p>Recursively updates all the affected indicators/frames</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>indicator</strong> (class:<cite>open_anafi.models.Indicator</cite>) – The indicator to evaluate</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="open_anafi.lib.IndicatorTools.updateIndicator">
+<em class="property">static </em><code class="sig-name descname">updateIndicator</code><span class="sig-paren">(</span><em class="sig-param">equation</em>, <em class="sig-param">description</em>, <em class="sig-param">id</em>, <em class="sig-param">username</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/lib/indicator_tools.html#IndicatorTools.updateIndicator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.IndicatorTools.updateIndicator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update an indicator. This method will destory it and recreate it restoring all the previous
+parameters. It will also update the depth recursively.</p>
+<p>Note that we cannot modify the indicator’s name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>equation</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The updated equation (updated or not)</p></li>
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The updated description</p></li>
+<li><p><strong>id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The indicator’s id</p></li>
+<li><p><strong>username</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The username of the user who modified the indicator</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The updated indicator</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>class:<cite>open_anafi.models.Indicator</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="the-variabletools-class">
+<h3>The <code class="docutils literal notranslate"><span class="pre">VariableTools</span></code> class<a class="headerlink" href="#the-variabletools-class" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="open_anafi.lib.VariableTools">
+<em class="property">class </em><code class="sig-prename descclassname">open_anafi.lib.</code><code class="sig-name descname">VariableTools</code><a class="reference internal" href="_modules/open_anafi/lib/variable_tools.html#VariableTools"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.VariableTools" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="open_anafi.lib.VariableTools.feed_variable">
+<em class="property">static </em><code class="sig-name descname">feed_variable</code><span class="sig-paren">(</span><em class="sig-param">variable</em>, <em class="sig-param">exges_list</em>, <em class="sig-param">exges_effective</em>, <em class="sig-param">data_frame_comptes</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/lib/variable_tools.html#VariableTools.feed_variable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.VariableTools.feed_variable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluates a variable with the given data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variable</strong> (class:<cite>open_anafi.models.Variable</cite>) – The variable object</p></li>
+<li><p><strong>exges_list</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – The range of exercices given by the user</p></li>
+<li><p><strong>exges_effective</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – The effective range of exercices (without the empty ones)</p></li>
+<li><p><strong>data_frame_comptes</strong> (class:<cite>pandas.DataFrame</cite>) – The account data</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A numpy array with the variable evaluation for each year (zero for empty exercices)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>class:<cite>numpy.Array</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="the-frametools-class">
+<h3>The <code class="docutils literal notranslate"><span class="pre">FrameTools</span></code> class<a class="headerlink" href="#the-frametools-class" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="open_anafi.lib.FrameTools">
+<em class="property">class </em><code class="sig-prename descclassname">open_anafi.lib.</code><code class="sig-name descname">FrameTools</code><a class="reference internal" href="_modules/open_anafi/lib/frame_tools.html#FrameTools"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.FrameTools" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="open_anafi.lib.FrameTools.calculateDepth">
+<em class="property">static </em><code class="sig-name descname">calculateDepth</code><span class="sig-paren">(</span><em class="sig-param">frame</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/lib/frame_tools.html#FrameTools.calculateDepth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.FrameTools.calculateDepth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate the depth of a frame (the maximum depth among all its children)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>frame</strong> (class:<cite>open_anafi.models.Frame</cite>) – The frame to evaluate</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-open_anafi.lib.parsing_tools">
+<span id="the-parsing-tools"></span><h3>The Parsing tools<a class="headerlink" href="#module-open_anafi.lib.parsing_tools" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="open_anafi.lib.parsing_tools.calculateDepth">
+<code class="sig-prename descclassname">open_anafi.lib.parsing_tools.</code><code class="sig-name descname">calculateDepth</code><span class="sig-paren">(</span><em class="sig-param">indicator_parameter</em>, <em class="sig-param">parameters_to_calculate</em>, <em class="sig-param">all_indicators</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/lib/parsing_tools.html#calculateDepth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.parsing_tools.calculateDepth" title="Permalink to this definition">¶</a></dt>
+<dd><p>A temporary recursive function that evaluates the depth of a list of indicators in an unorganized excel file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>indicator_parameter</strong> (class:<cite>open_anafi.models.IndicatorParameter</cite>) – The current indicator parameter to evaluate</p></li>
+<li><p><strong>parameters_to_calculate</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – The list of remaining indicator parameters to evaluate</p></li>
+<li><p><strong>all_indicators</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – All the indicators present in the excel file</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="open_anafi.lib.parsing_tools.createParameter">
+<code class="sig-prename descclassname">open_anafi.lib.parsing_tools.</code><code class="sig-name descname">createParameter</code><span class="sig-paren">(</span><em class="sig-param">parsedParameter</em>, <em class="sig-param">formule</em>, <em class="sig-param">indicator</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/lib/parsing_tools.html#createParameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.parsing_tools.createParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an indicator parameter. Can be used while parsing an excel file containing multiple indicators.
+In this case the ‘parameters_to_calculate’ parameter has to be sent</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parsedParameter</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)"><em>tuple</em></a>) – The tuple corresponding to a single parameter, parsed by the langage analyzer</p></li>
+<li><p><strong>formule</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The original equation (as a string typed by the user)</p></li>
+<li><p><strong>indicator</strong> (class:<cite>open_anafi.models.Indicator</cite>) – The indicator to link the parameter to</p></li>
+<li><p><strong>all_indicators</strong> (<em>optional dict</em>) – A dictionnary of all the indicators present in the excel file (This parameter is used to determine if we are working on one or multiple indicators)</p></li>
+<li><p><strong>parameters_to_calculate</strong> (<em>optional dict</em>) – A dictionnary of all the indicator parameters whose depth cannot be calculated right now (depth &gt; 1)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The created indicator parameter</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>class:<cite>open_anafi.models.IndicatorParameter</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="open_anafi.lib.parsing_tools.createVariable">
+<code class="sig-prename descclassname">open_anafi.lib.parsing_tools.</code><code class="sig-name descname">createVariable</code><span class="sig-paren">(</span><em class="sig-param">variable</em>, <em class="sig-param">indicator_parameter</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/lib/parsing_tools.html#createVariable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.parsing_tools.createVariable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an open_anafi variable object linked to an indicator parameter</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>variable</strong> (class:<cite>open_anafi.lib.ply.parsing_classes.Var</cite>) – The variable to create</p></li>
+<li><p><strong>indicator_parameter</strong> (class:<cite>ope_anafi.models.IndicatorParameter</cite>) – The indicator parameter to link the variable to</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="open_anafi.lib.parsing_tools.extractIndicatorsAndVariables">
+<code class="sig-prename descclassname">open_anafi.lib.parsing_tools.</code><code class="sig-name descname">extractIndicatorsAndVariables</code><span class="sig-paren">(</span><em class="sig-param">tree</em>, <em class="sig-param">indicators</em>, <em class="sig-param">indicator_parameter</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/lib/parsing_tools.html#extractIndicatorsAndVariables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.parsing_tools.extractIndicatorsAndVariables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursive function that will create the Variables and retrieve the indicators from a parsed equation (a tuple)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tree</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)"><em>tuple</em></a><em>, </em><em>Var</em><em>, </em><em>Indic</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The node to a analyze</p></li>
+<li><p><strong>indicators</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) – The array containing all the indicators present in the equation</p></li>
+<li><p><strong>indicator_parameter</strong> (class:<cite>open_anafi.models.IndicatorParameter</cite>) – The indicator parameter to link the variables to</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tuple of the equation that can be read by the report parser</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)">tuple</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="open_anafi.lib.parsing_tools.getOrCreateFrame">
+<code class="sig-prename descclassname">open_anafi.lib.parsing_tools.</code><code class="sig-name descname">getOrCreateFrame</code><span class="sig-paren">(</span><em class="sig-param">frame_name</em>, <em class="sig-param">model_name</em>, <em class="sig-param">frame_description</em>, <em class="sig-param">nomenclature</em>, <em class="sig-param">institution_types</em>, <em class="sig-param">identifier_types</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/lib/parsing_tools.html#getOrCreateFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.parsing_tools.getOrCreateFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves or create an open_anafi frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the frame</p></li>
+<li><p><strong>model_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the excel file the frame outputs to</p></li>
+<li><p><strong>frame_description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The description of the frame</p></li>
+<li><p><strong>nomenclature</strong> (<em>optional int</em>) – The id of the nomenclature to attach the frame to</p></li>
+<li><p><strong>institution_types</strong> (<em>list of int</em>) – The institutions the frame can be calculated on</p></li>
+<li><p><strong>identifier_types</strong> (<em>list of int</em>) – The types of identifiers that the frame can be calculated on</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The retrieved or created Frame</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>class:<cite>open_anafi.models.Frame</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="the-excelwritertools-class">
+<h3>The <code class="docutils literal notranslate"><span class="pre">ExcelWriterTools</span></code> class<a class="headerlink" href="#the-excelwritertools-class" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="open_anafi.lib.ExcelWriterTools">
+<em class="property">class </em><code class="sig-prename descclassname">open_anafi.lib.</code><code class="sig-name descname">ExcelWriterTools</code><a class="reference internal" href="_modules/open_anafi/lib/excelwriter_tools.html#ExcelWriterTools"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.ExcelWriterTools" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="open_anafi.lib.ExcelWriterTools.border_maker">
+<em class="property">static </em><code class="sig-name descname">border_maker</code><span class="sig-paren">(</span><em class="sig-param">ws</em>, <em class="sig-param">cell_range</em>, <em class="sig-param">border=&lt;openpyxl.styles.borders.Border object&gt; Parameters: outline=True</em>, <em class="sig-param">diagonalUp=False</em>, <em class="sig-param">diagonalDown=False</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">left=&lt;openpyxl.styles.borders.Side object&gt; Parameters: style=None</em>, <em class="sig-param">color=None</em>, <em class="sig-param">right=&lt;openpyxl.styles.borders.Side object&gt; Parameters: style=None</em>, <em class="sig-param">color=None</em>, <em class="sig-param">top=&lt;openpyxl.styles.borders.Side object&gt; Parameters: style=None</em>, <em class="sig-param">color=None</em>, <em class="sig-param">bottom=&lt;openpyxl.styles.borders.Side object&gt; Parameters: style=None</em>, <em class="sig-param">color=None</em>, <em class="sig-param">diagonal=&lt;openpyxl.styles.borders.Side object&gt; Parameters: style=None</em>, <em class="sig-param">color=None</em>, <em class="sig-param">vertical=None</em>, <em class="sig-param">horizontal=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/lib/excelwriter_tools.html#ExcelWriterTools.border_maker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.ExcelWriterTools.border_maker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply styles to a range of cells as if they were a single cell.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ws</strong> (class:<cite>openpyxl.Worksheet</cite>) – Excel worksheet instance</p></li>
+<li><p><strong>range</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – An excel range to style (e.g. A1:F20)</p></li>
+<li><p><strong>border</strong> (class:<cite>openpyxl.styles.Border</cite>) – An openpyxl Border</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="open_anafi.lib.ExcelWriterTools.style_range">
+<em class="property">static </em><code class="sig-name descname">style_range</code><span class="sig-paren">(</span><em class="sig-param">ws</em>, <em class="sig-param">cell_range</em>, <em class="sig-param">border=&lt;openpyxl.styles.borders.Border object&gt; Parameters: outline=True</em>, <em class="sig-param">diagonalUp=False</em>, <em class="sig-param">diagonalDown=False</em>, <em class="sig-param">start=None</em>, <em class="sig-param">end=None</em>, <em class="sig-param">left=&lt;openpyxl.styles.borders.Side object&gt; Parameters: style=None</em>, <em class="sig-param">color=None</em>, <em class="sig-param">right=&lt;openpyxl.styles.borders.Side object&gt; Parameters: style=None</em>, <em class="sig-param">color=None</em>, <em class="sig-param">top=&lt;openpyxl.styles.borders.Side object&gt; Parameters: style=None</em>, <em class="sig-param">color=None</em>, <em class="sig-param">bottom=&lt;openpyxl.styles.borders.Side object&gt; Parameters: style=None</em>, <em class="sig-param">color=None</em>, <em class="sig-param">diagonal=&lt;openpyxl.styles.borders.Side object&gt; Parameters: style=None</em>, <em class="sig-param">color=None</em>, <em class="sig-param">vertical=None</em>, <em class="sig-param">horizontal=None</em>, <em class="sig-param">fill=None</em>, <em class="sig-param">font=None</em>, <em class="sig-param">alignment=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/lib/excelwriter_tools.html#ExcelWriterTools.style_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.ExcelWriterTools.style_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply styles to a range of cells as if they were a single cell.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ws</strong> (class:<cite>openpyxl.Worksheet</cite>) – Excel worksheet instance</p></li>
+<li><p><strong>range</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – An excel range to style (e.g. A1:F20)</p></li>
+<li><p><strong>border</strong> (class:<cite>openpyxl.styles.Border</cite>) – An openpyxl Border</p></li>
+<li><p><strong>fill</strong> (class:<cite>openpyxl.styles.Fill</cite>) – An openpyxl PatternFill or GradientFill</p></li>
+<li><p><strong>font</strong> (class:<cite>openpyxl.styles.Font</cite>) – An openpyxl Font object</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="open_anafi.lib.ExcelWriterTools.write_balance">
+<em class="property">static </em><code class="sig-name descname">write_balance</code><span class="sig-paren">(</span><em class="sig-param">identifiers</em>, <em class="sig-param">identifiers_type</em>, <em class="sig-param">year_min</em>, <em class="sig-param">year_max</em>, <em class="sig-param">libsiret</em>, <em class="sig-param">balances</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/lib/excelwriter_tools.html#ExcelWriterTools.write_balance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.ExcelWriterTools.write_balance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a ‘Balance des comptes’ report, which is a dump of the data in the accounts</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>identifiers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The identifier(s) the balance was calculated on (concatenation in case of an aggreggation)</p></li>
+<li><p><strong>identifiers_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The type of the identifiers (SIRET, SIREN, FINESS)</p></li>
+<li><p><strong>year_min</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The lower bound of the range the balance was calculated on</p></li>
+<li><p><strong>year_max</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The lower bound of the range the balance was calculated on</p></li>
+<li><p><strong>libsiret</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The establishment’s label (#TODO check this, not sure)</p></li>
+<li><p><strong>balances</strong> (class:<cite>pandas.DataFrame</cite>) – The dataframe containing all the infos to write</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="open_anafi.lib.ExcelWriterTools.write_headers">
+<em class="property">static </em><code class="sig-name descname">write_headers</code><span class="sig-paren">(</span><em class="sig-param">sheet</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/lib/excelwriter_tools.html#ExcelWriterTools.write_headers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.ExcelWriterTools.write_headers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the headers for a balance des comptes report.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sheet</strong> (class:<cite>openpyxl.Worksheet</cite>) – The excel worksheet to work on</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="open_anafi.lib.ExcelWriterTools.write_perimeter_headers">
+<em class="property">static </em><code class="sig-name descname">write_perimeter_headers</code><span class="sig-paren">(</span><em class="sig-param">sheet</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/lib/excelwriter_tools.html#ExcelWriterTools.write_perimeter_headers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.ExcelWriterTools.write_perimeter_headers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the headers for the perimeter sheet of the report</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sheet</strong> (class:<cite>openpyxl.Worksheet</cite>) – The excel sheet to work on</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="open_anafi.lib.ExcelWriterTools.write_report">
+<em class="property">static </em><code class="sig-name descname">write_report</code><span class="sig-paren">(</span><em class="sig-param">computed_indicators</em>, <em class="sig-param">ident</em>, <em class="sig-param">type_ident</em>, <em class="sig-param">exmin</em>, <em class="sig-param">exmax</em>, <em class="sig-param">libsiret</em>, <em class="sig-param">model_name</em>, <em class="sig-param">dps=None</em>, <em class="sig-param">aggregate=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/open_anafi/lib/excelwriter_tools.html#ExcelWriterTools.write_report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_anafi.lib.ExcelWriterTools.write_report" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes an open_anafi report into an excel file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>computed_indicators</strong> (class:<cite>pandas.DataFrame</cite>) – A list of all the indicators and their values for each year to evaluate</p></li>
+<li><p><strong>ident</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The identifier(s) the report was evaluated on (A concatenation if multiple SIRETS)</p></li>
+<li><p><strong>type_ident</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The type of the identifier (SIRET, SIREN, FINESS)</p></li>
+<li><p><strong>exmin</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The lower bound of the range the report was calculated on</p></li>
+<li><p><strong>exmax</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The lower bound of the range the report was calculated on</p></li>
+<li><p><strong>libsiret</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The establishment’s label (#TODO check this, not sure)</p></li>
+<li><p><strong>model_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the reference excel file (The model to fill)</p></li>
+<li><p><strong>dps</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – #TODO Figure out wtf this is</p></li>
+<li><p><strong>aggregate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If the report was an aggreggation of multiple identifiers or not</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The name of the created Excel file</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-open_anafi.tasks">
+<span id="the-open-anafi-tasks"></span><h3>The open_anafi tasks<a class="headerlink" href="#module-open_anafi.tasks" title="Permalink to this headline">¶</a></h3>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">OpenAnafi’s Documentation</a><ul>
+<li><a class="reference internal" href="#models">Models</a><ul>
+<li><a class="reference internal" href="#module-open_anafi.models">OpenAnafi</a></li>
+<li><a class="reference internal" href="#module-database.models">Requester</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#controllers">Controllers</a><ul>
+<li><a class="reference internal" href="#the-indicatortools-class">The <code class="docutils literal notranslate"><span class="pre">IndicatorTools</span></code> class</a></li>
+<li><a class="reference internal" href="#the-variabletools-class">The <code class="docutils literal notranslate"><span class="pre">VariableTools</span></code> class</a></li>
+<li><a class="reference internal" href="#the-frametools-class">The <code class="docutils literal notranslate"><span class="pre">FrameTools</span></code> class</a></li>
+<li><a class="reference internal" href="#module-open_anafi.lib.parsing_tools">The Parsing tools</a></li>
+<li><a class="reference internal" href="#the-excelwritertools-class">The <code class="docutils literal notranslate"><span class="pre">ExcelWriterTools</span></code> class</a></li>
+<li><a class="reference internal" href="#module-open_anafi.tasks">The open_anafi tasks</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">OpenAnafi 1.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Guillaume Lemaire, Arthur Valingot, Jim Bienvenu.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>
