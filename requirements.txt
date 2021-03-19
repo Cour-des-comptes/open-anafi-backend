@@ -12,7 +12,7 @@ django-celery-results==1.1.2
 django-cors-headers==3.1.0
 django-js-asset==1.2.2
 django-mptt==0.10.0
-djangorestframework==3.10.3
+djangorestframework==3.11.2
 djangorestframework-simplejwt==4.3.0
 docutils==0.15.2
 et-xmlfile==1.0.1
