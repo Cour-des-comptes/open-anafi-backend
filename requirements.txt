@@ -23,7 +23,7 @@ importlib-metadata==0.22
 inflection==0.3.1
 itypes==1.1.0
 jdcal==1.4.1
-Jinja2==2.10.1
+Jinja2==2.11.3
 jsonschema==3.0.2
 kombu==4.6.4
 ldap3==2.6.1
