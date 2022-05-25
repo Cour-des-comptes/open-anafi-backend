@@ -41,7 +41,7 @@ psycopg2==2.8.3
 psycopg2-binary==2.8.3
 public==2019.4.13
 pyasn1==0.4.7
-PyJWT==1.7.1
+PyJWT==2.4.0
 pykerberos==1.2.1
 pyrsistent==0.15.4
 python-dateutil==2.8.0
