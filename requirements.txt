@@ -30,7 +30,7 @@ ldap3==2.6.1
 Markdown==3.1.1
 MarkupSafe==1.1.1
 more-itertools==7.2.0
-numpy==1.17.2
+numpy==1.22.0
 openapi==1.1.0
 openapi-codec==1.3.2
 openpyxl==2.6.3
