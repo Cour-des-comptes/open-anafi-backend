@@ -8,7 +8,7 @@ coreapi==2.3.3
 coreschema==0.0.4
 Django==2.2.5
 django-auth-kerberos==1.2.5
-django-celery-results==1.1.2
+django-celery-results==2.4.0
 django-cors-headers==3.1.0
 django-js-asset==1.2.2
 django-mptt==0.10.0
